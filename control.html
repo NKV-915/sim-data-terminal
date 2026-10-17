@@ -1,595 +1,148 @@
 <!DOCTYPE html>
-<html lang="de" class="h-full bg-slate-950 text-slate-100">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELS Leitstellen-Steuerung | Trainer-Konsole</title>
+    <title>Leitstellen-Steuerung</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                        display: ['"Chakra Petch"', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .glow-red { box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.45); }
-    </style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased overflow-x-hidden select-none bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
+<body class="bg-gray-900 text-gray-100 h-screen p-4 flex flex-col font-sans">
 
-    <!-- Leitstellen Kopfzeile -->
-    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-900/40 border border-rose-400/30">
-                <i class="fa-solid fa-tower-broadcast text-white text-lg animate-pulse"></i>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="font-display font-bold text-lg tracking-wider text-white">LEITSTELLE WIEN</h1>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                        TRAINER-KONSOLE
-                    </span>
-                </div>
-                <p class="text-xs text-slate-400">Einsatzleit- & Simulationssteuerung Rettungsdienst</p>
-            </div>
+    <!-- Header mit Raum-Anzeige -->
+    <div class="bg-gray-800 border-b-2 border-red-500 p-4 rounded-t flex justify-between items-center shadow-lg">
+        <h1 class="text-2xl font-bold text-red-500 flex items-center gap-2">
+            📡 DISPATCH KONTROLLZENTRUM
+        </h1>
+        <div class="bg-gray-900 px-4 py-1 rounded text-sm text-gray-400 border border-gray-700">
+            RAUM: <span id="ui-room" class="font-bold text-yellow-400 text-lg ml-1">...</span>
         </div>
+    </div>
 
-        <div class="flex items-center gap-3">
-            <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-xs">
-                <span id="conn-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                <span id="conn-text" class="text-slate-300 font-mono">Verbunden (Lokal & Remote)</span>
-            </div>
-
-            <div class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-right font-mono">
-                <div id="live-time" class="text-xs font-bold text-cyan-400">--:--:--</div>
-                <div id="live-date" class="text-[10px] text-slate-400">--.--.----</div>
-            </div>
-
-            <button onclick="window.open('/', '_blank')" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-slate-200 transition-all flex items-center gap-2 hover:border-cyan-400">
-                <i class="fa-solid fa-desktop text-cyan-400"></i>
-                <span class="hidden md:inline">Sim Data Terminal</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Hauptbereich -->
-    <main class="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
+    <!-- Main Content -->
+    <div class="flex-1 flex gap-4 mt-4 overflow-hidden">
         
-        <!-- Linke Spalte: Notfallszenarien & Generatoren -->
-        <section class="lg:col-span-5 flex flex-col gap-4">
-            
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
-                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">AMPDS Notfall-Szenarien (Wien)</h2>
-                </div>
-                <span class="text-xs text-slate-400">Klick lädt Szenario</span>
-            </div>
-
-            <div id="presets-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[700px] overflow-y-auto pr-1"></div>
-
-            <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex flex-col gap-3">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Generator-Schnellfunktionen
-                </span>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="randomizeAddress()" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/50 text-xs font-medium text-slate-200 text-left transition flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot text-cyan-400 text-sm"></i>
-                        <span>Neue Wiener Adresse</span>
-                    </button>
-                    <button onclick="randomizePatient()" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-xs font-medium text-slate-200 text-left transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus text-amber-400 text-sm"></i>
-                        <span>Zufälliger Patient & SV</span>
-                    </button>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Rechte Spalte: Disposition, Stammdaten & Alarmierung -->
-        <section class="lg:col-span-7 flex flex-col gap-4">
-            
-            <!-- Einsatzdaten -->
-            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col gap-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-100">Einsatzdisposition (EN & BO)</h2>
-                    </div>
-                    <button onclick="regenerateRNumber()" class="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 transition">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                        <span>R-Nummer neu</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">R-Nummer (EN):</label>
-                        <input id="ctrl-rnr" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-500 focus:outline-none font-mono font-bold text-sm text-cyan-300 transition">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">AMPDS-Einsatzcode:</label>
-                        <input id="ctrl-code" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-500 focus:outline-none font-semibold text-xs text-rose-300 transition">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Berufungsort (BO - Wien):</label>
-                    <textarea id="ctrl-bo" rows="3" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-500 focus:outline-none font-mono text-xs font-semibold text-slate-200 uppercase leading-relaxed resize-none"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Freitext-Meldung (FTEXT für Terminal):</label>
-                    <textarea id="ctrl-ftext" rows="3" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-500 focus:outline-none text-xs font-medium text-slate-200 leading-relaxed resize-none"></textarea>
-                </div>
-            </div>
-
-            <!-- Patientendaten -->
-            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col gap-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-100">Patientenstammdaten (Österreich)</h2>
-                    </div>
-                    <span class="text-xs text-slate-400 font-mono">Format: 4 Ziffern + TTMMJJ</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">Name des Patienten:</label>
-                        <input id="ctrl-pname" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:outline-none text-xs font-semibold text-slate-200">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">Geschlecht:</label>
-                        <select id="ctrl-geschl" onchange="onGenderChange()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:outline-none text-xs font-semibold text-slate-200">
-                            <option value="männlich">männlich</option>
-                            <option value="weiblich">weiblich</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">Geburtsdatum (TT.MM.JJJJ):</label>
-                        <input id="ctrl-gebdat" oninput="updateSVFromDOB()" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:outline-none font-mono text-xs font-bold text-slate-200">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">10-stellige österr. SV-Nummer:</label>
-                        <input id="ctrl-sv" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-amber-500/40 focus:border-amber-400 focus:outline-none font-mono font-bold text-xs text-amber-300">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">Transport-Nummer (T-NR):</label>
-                        <input id="ctrl-tnr" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:outline-none font-mono text-xs font-bold text-slate-200">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1">Alter / Beschwerdebild:</label>
-                        <input id="ctrl-alter" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-amber-500 focus:outline-none text-xs font-medium text-slate-200">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aktionsleiste -->
-            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
-                <button onclick="sendRemoteClear()" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-700/60 text-xs font-bold text-rose-300 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trash-can text-rose-400"></i>
-                    <span>Terminal leeren / Reset</span>
+        <!-- Left: Notfallbilder -->
+        <div class="w-1/2 flex flex-col gap-2">
+            <h2 class="text-gray-400 font-bold mb-2">SCHNELL-ALARMIERUNG (SZENARIEN)</h2>
+            <div class="grid grid-cols-2 gap-2 flex-1 auto-rows-max overflow-y-auto pr-2">
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('ACS')">
+                    <div class="text-red-400 font-bold">Thoraxschmerz / ACS</div>
+                    <div class="text-xs text-gray-400">10D05 | Verdacht auf Herzinfarkt</div>
                 </button>
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('APOPLEX')">
+                    <div class="text-orange-400 font-bold">Apoplex / Schlaganfall</div>
+                    <div class="text-xs text-gray-400">28C01 | Neurologisches Defizit</div>
+                </button>
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('ATEMNOT')">
+                    <div class="text-blue-400 font-bold">Atemnot (Schwer)</div>
+                    <div class="text-xs text-gray-400">06D02 | Dyspnoe, COPD, Asthma</div>
+                </button>
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('KRAMPF')">
+                    <div class="text-purple-400 font-bold">Krampfanfall</div>
+                    <div class="text-xs text-gray-400">12D02 | Status Epilepticus</div>
+                </button>
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('TRAUMA')">
+                    <div class="text-yellow-400 font-bold">Verkehrsunfall</div>
+                    <div class="text-xs text-gray-400">29D02 | PKW vs. Fußgänger</div>
+                </button>
+                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('STURZ')">
+                    <div class="text-yellow-400 font-bold">Sturz aus Höhe</div>
+                    <div class="text-xs text-gray-400">17D03 | >3 Meter, Polytrauma</div>
+                </button>
+            </div>
+        </div>
 
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <button onclick="dispatchCustomAlarm()" class="w-full sm:w-auto flex-1 px-8 py-3.5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-display font-bold text-sm tracking-wide shadow-lg shadow-rose-900/50 glow-red border border-rose-400/40 flex items-center justify-center gap-3 transition-transform active:scale-95">
-                        <i class="fa-solid fa-bell text-yellow-300 text-base animate-bounce"></i>
-                        <span>🚨 ALARMIERUNG JETZT SENDEN</span>
-                    </button>
-                </div>
+        <!-- Right: Vorschau & Senden -->
+        <div class="w-1/2 flex flex-col bg-gray-800 rounded border border-gray-700 p-4">
+            <h2 class="text-gray-400 font-bold mb-4">DATEN-VORSCHAU</h2>
+            
+            <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div><label class="text-gray-500 block text-xs">Auftrags-Nr (R)</label><input id="inp_r_nr" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white" readonly></div>
+                <div><label class="text-gray-500 block text-xs">Transport-Nr (T)</label><input id="inp_t_nr" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white" readonly></div>
+                
+                <div class="col-span-2"><label class="text-gray-500 block text-xs">Adresse (BO)</label><input id="inp_bo" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
+                
+                <div><label class="text-gray-500 block text-xs">AMPDS Code</label><input id="inp_code" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
+                <div><label class="text-gray-500 block text-xs">Patientenname</label><input id="inp_name" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
+                
+                <div><label class="text-gray-500 block text-xs">Geburtsdatum</label><input id="inp_geb" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
+                <div><label class="text-gray-500 block text-xs">SV-Nummer</label><input id="inp_sv" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white font-mono text-yellow-400"></div>
+                
+                <div class="col-span-2"><label class="text-gray-500 block text-xs">Freitext (FTEXT)</label><textarea id="inp_ftext" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white h-20 resize-none"></textarea></div>
             </div>
 
-            <!-- Sendeverlauf -->
-            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col gap-2">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
-                    <span>Letzte Übertragungen:</span>
-                </span>
-                <div id="dispatch-history" class="space-y-1.5 max-h-36 overflow-y-auto font-mono text-xs text-slate-400">
-                    <div class="text-slate-500 italic py-1">Noch keine Alarmierungen in dieser Sitzung ausgelöst.</div>
-                </div>
-            </div>
-
-        </section>
-
-    </main>
-
-    <!-- Toast Nachricht -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 ease-out pointer-events-none">
-        <div class="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900/95 border border-emerald-500/50 text-emerald-400 shadow-2xl backdrop-blur-md">
-            <i class="fa-solid fa-circle-check text-lg"></i>
-            <span id="toast-text" class="text-xs font-bold tracking-wide text-slate-100">Alarmierung gesendet!</span>
+            <button onclick="sendDispatch()" class="mt-auto bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded text-xl shadow-[0_0_15px_rgba(220,38,38,0.5)] transition flex items-center justify-center gap-3">
+                🚨 ALARMIERUNG IN DEN RAUM SENDEN
+            </button>
         </div>
     </div>
 
     <script>
-        const PRESETS = [
-            {
-                id: 'acs',
-                category: 'Kardiologie',
-                icon: 'fa-heart-pulse text-rose-500',
-                name: 'Thoraxschmerz (ACS)',
-                code: '10D05 (Herzinfarkt/Angina Pectoris-Vorgeschichte)',
-                ftext: 'PATIENT KLAGT ÜBER AKUTE RETROSTERNALE DRÜCKENDE SCHMERZEN SEIT 40 MINUTEN MIT AUSSTRAHLUNG IN DEN LINKEN ARM UND KALTSCHWEISSIGKEIT. VORERKRANKUNG: KHK, Z.N. STENT.',
-                gender: 'männlich',
-                age: 68,
-                complaint: 'Akuter Thoraxschmerz / Verdacht auf STEMI'
-            },
-            {
-                id: 'apoplex',
-                category: 'Neurologie',
-                icon: 'fa-brain text-purple-400',
-                name: 'Schlaganfall / FAST+',
-                code: '28C01C (Schlaganfall / TIA - Symptombeginn < 3 Std)',
-                ftext: 'EHEFRAU MELDET PLÖTZLICHEN HERABHÄNGENDEN MUNDWINKEL RECHTS UND SCHWÄCHE IM RECHTEN ARM SEIT 25 MINUTEN. SPRACHE DEUTLICH VERWASCHEN (FAST POSITIV).',
-                gender: 'weiblich',
-                age: 74,
-                complaint: 'V.a. Akuten ischämischen Insult'
-            },
-            {
-                id: 'dyspnoe',
-                category: 'Respiration',
-                icon: 'fa-lungs text-cyan-400',
-                name: 'Schwere Atemnot',
-                code: '06D01 (Schwere Atembeschwerden - Zyanose/Erschöpfung)',
-                ftext: 'PATIENTIN RINGT NACH LUFT BEI BEKANNTER COPD. SPRECHEN IN GANZEN SÄTZEN NICHT MEHR MÖGLICH. EXPIRATORISCHES GIEMEN HÖRBAR, LIPPENZYANOSE.',
-                gender: 'weiblich',
-                age: 62,
-                complaint: 'Akute COPD-Exazerbation'
-            },
-            {
-                id: 'cpr',
-                category: 'Reanimation',
-                icon: 'fa-triangle-exclamation text-rose-600',
-                name: 'Kreislaufstillstand / CPR',
-                code: '09E01 (Herz-Kreislauf-Stillstand - Laienreanimation läuft)',
-                ftext: 'KREISLAUFSTILLSTAND NACH COLLAPS. PASSANTEN DRÜCKEN BEREITS. ÖFFENTLICHER DEFI WURDE GEHOLT. NOTARZT MITHINZU.',
-                gender: 'männlich',
-                age: 59,
-                complaint: 'Reanimation / Herzkreislaufstillstand'
-            },
-            {
-                id: 'vku',
-                category: 'Trauma',
-                icon: 'fa-car-burst text-amber-500',
-                name: 'Verkehrsunfall PKW/Rad',
-                code: '29B01 (Verkehrsunfall - PKW vs Radfahrer)',
-                ftext: 'RADFAHRER VOM ABKÖMMLICHEN PKW ERFASST. ANSPRECHBAR, STARKE SCHMERZEN RECHTE SCHULTER UND THORAXTRAUMA. HELM GETRAGEN.',
-                gender: 'männlich',
-                age: 34,
-                complaint: 'Polytrauma-Ausschluss nach Kollision'
-            },
-            {
-                id: 'krampf',
-                category: 'Neurologie',
-                icon: 'fa-bolt text-yellow-400',
-                name: 'Krampfanfall aktiv',
-                code: '12D01 (Krampfanfall aktiv / Z.n. Status)',
-                ftext: 'BEOBACHTETER GENERALISIERTER TONISCH-KLONISCHER ANFALL IN WOHNUNG. PATIENT WAR CA. 3 MINUTEN BEWUSSTLOS, NUN POSTIKTAL VERWIRRT UND SOMNOLENT. ZUNGENBISS.',
-                gender: 'männlich',
-                age: 28,
-                complaint: 'Z.n. epileptischem Anfall'
-            },
-            {
-                id: 'abdomen',
-                category: 'Chirurgie',
-                icon: 'fa-bed-pulse text-indigo-400',
-                name: 'Akutes Abdomen',
-                code: '01D01 (Abdominalschmerz - schwer / peritonitisch)',
-                ftext: 'MASSIVE STECHENDE SCHMERZEN IM RECHTEN UNTERBAUCH SEIT HEUTE FRÜH MIT DEUTLICHER ABWEHRSPANNUNG. ÜBELKEIT UND ERBRECHEN, SUBFEBRIL.',
-                gender: 'weiblich',
-                age: 26,
-                complaint: 'V.a. akute Appendizitis / Akutes Abdomen'
-            },
-            {
-                id: 'sturz',
-                category: 'Trauma',
-                icon: 'fa-person-falling text-orange-400',
-                name: 'Sturz aus Höhe > 2m',
-                code: '17D03 (Sturz aus Höhe > 2m / Haushaltsleiter)',
-                ftext: 'BEIM VORHÄNGE AUFHÄNGEN VON DER LEITER GESTÜRZT. STARKE SCHMERZEN RECHTE HÜFTE, BEIN DEUTLICH VERKÜRZT UND AUSSENROTIERT. KEINE BEWUSSTLOSIGKEIT.',
-                gender: 'weiblich',
-                age: 82,
-                complaint: 'V.a. Oberschenkelhalsfraktur rechts'
-            },
-            {
-                id: 'anaphylaxie',
-                category: 'Allergie',
-                icon: 'fa-shield-virus text-pink-400',
-                name: 'Schwere Anaphylaxie',
-                code: '02D01 (Allergie / Anaphylaxie - respiratorisch)',
-                ftext: 'NACH WESPENSTICH IN DEN HALS PLÖTZLICHE MASSIVE SCHWELLUNG, GENERALISIERTE URTICARIA, INSPIRATORISCHER STRIDOR UND KALTER SCHWEISS.',
-                gender: 'männlich',
-                age: 41,
-                complaint: 'Anaphylaxie Grad III'
-            }
-        ];
+        // RAUM-LOGIK AUSLESEN
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room') || 'SIM1';
+        document.getElementById('ui-room').innerText = roomCode;
 
-        const VIENNA_ADDRESSES = [
-            'HOLLERGASSE 2-6/3/12\n1150 WIEN\n: @ABZ : STIEGE 3 TUER 12',
-            'PRATERSTRASSE 45/2/8\n1020 WIEN\n: @ABZ : 2. STOCK RECHTS',
-            'LINZER STRASSE 142/1/5\n1140 WIEN\n: @ABZ : EG HINTERHOF',
-            'FAVORITENSTRASSE 88/4/19\n1100 WIEN\n: @ABZ : STIEGE 4 LIFT 3.OG',
-            'ALSER STRASSE 23/1/14\n1080 WIEN\n: @ABZ : INNENHOF STIEGE 1',
-            'LANDSTRASSER HAUPTSTRASSE 51/2/4\n1030 WIEN\n: @ABZ : 1. STOCK BEI FAMILIE',
-            'HÜTTELDORFER STRASSE 110/3/7\n1140 WIEN\n: @ABZ : STIEGE 3 2.STOCK',
-            'SIMMERINGER HAUPTSTRASSE 64/2/11\n1110 WIEN\n: @ABZ : STIEGE 2 TUER 11',
-            'WAEHRINGER STRASSE 92/1/8\n1090 WIEN\n: @ABZ : MEZZANIN LINKS',
-            'MARIAHILFER STRASSE 164/2/15\n1150 WIEN\n: @ABZ : DACHGESCHOSS LIFT'
-        ];
+        // Netzwerk-Setup (Raum im WS-Pfad mitgeben)
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let ws = new WebSocket(`${protocol}//${location.host}?room=${roomCode}`);
+        const bc = new BroadcastChannel('sim_data_' + roomCode);
 
-        const AUSTRIAN_MALE_NAMES = [
-            'Franz Gruber', 'Stefan Bauer', 'Michael Huber', 'Alexander Wagner', 
-            'Peter Pichler', 'Thomas Steiner', 'Wolfgang Eder', 'Christian Moser',
-            'Markus Leitner', 'Andreas Winkler', 'Josef Hofer', 'Gerald Schmid'
-        ];
+        // Szenarien Datenbank
+        const scenarios = {
+            'ACS': { code: '10D05', ftext: 'Notruf durch Ehefrau. Patient klagt über starke Brustschmerzen, ausstrahlend in linken Arm. Kaltschweißig.', name: 'Mustermann, Franz', geb: '12.05.1965', geschlecht: 'männlich', bo: 'Hauptstraße 15/3\n1030 Wien\nTür-Code: 1234' },
+            'APOPLEX': { code: '28C01', ftext: 'Plötzliche Sprachstörung und halbseitige Lähmung rechts. Begann vor ca. 30 Minuten. Patient ist wach.', name: 'Huber, Maria', geb: '23.08.1952', geschlecht: 'weiblich', bo: 'Ringstraße 1/14\n1010 Wien\nLift im Haus' },
+            'ATEMNOT': { code: '06D02', ftext: 'Schwere Atemnot, zyanotisch. Bekanntes schweres Asthma. Sprechen kaum noch möglich.', name: 'Bauer, Stefan', geb: '09.11.1988', geschlecht: 'männlich', bo: 'Praterstern 3\n1020 Wien\nBeim Bahnhofseingang' },
+            'KRAMPF': { code: '12D02', ftext: 'Status Epilepticus auf offener Straße. Krampfte bereits 3x hintereinander. Blutet aus dem Mund.', name: 'Unbekannt, Männlich', geb: '01.01.1990', geschlecht: 'männlich', bo: 'Mariahilfer Straße 50\n1070 Wien\nVor dem Schuhgeschäft' },
+            'TRAUMA': { code: '29D02', ftext: 'Verkehrsunfall PKW gegen Fußgänger. Patient liegt am Boden, nicht ansprechbar. Starke Blutung am Kopf.', name: 'Gruber, Anna', geb: '17.03.2001', geschlecht: 'weiblich', bo: 'Gürtel / Burggasse\n1150 Wien\nKreuzungsbereich' },
+            'STURZ': { code: '17D03', ftext: 'Bauarbeiter aus ca. 4 Metern Höhe vom Gerüst gestürzt. Klagt über starke Rückenschmerzen, Beine taub.', name: 'Wagner, Thomas', geb: '30.06.1979', geschlecht: 'männlich', bo: 'Baustelle Nordbahnhof\n1020 Wien\nZufahrt über Tor 2' }
+        };
 
-        const AUSTRIAN_FEMALE_NAMES = [
-            'Maria Gruber', 'Anna Huber', 'Hannelore Wagner', 'Elisabeth Bauer', 
-            'Claudia Steiner', 'Monika Pichler', 'Sabine Moser', 'Gertrude Hofer',
-            'Karin Winkler', 'Renate Schmid', 'Barbara Leitner', 'Susanne Eder'
-        ];
+        function generateId(prefix) { return prefix + Math.floor(Math.random() * 900000 + 100000); }
 
-        const broadcastChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_terminal_channel') : null;
-        let socket = null;
-
-        function initWebSocket() {
-            try {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const socketUrl = `${protocol}//${window.location.host}/ws`;
-                socket = new WebSocket(socketUrl);
-
-                socket.onopen = () => {
-                    const ind = document.getElementById('conn-indicator');
-                    const txt = document.getElementById('conn-text');
-                    ind.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping';
-                    txt.textContent = 'Server Online (WebSocket aktiv)';
-                };
-
-                socket.onclose = () => {
-                    const ind = document.getElementById('conn-indicator');
-                    const txt = document.getElementById('conn-text');
-                    ind.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
-                    txt.textContent = 'Lokal aktiv (BroadcastChannel)';
-                    setTimeout(initWebSocket, 4000);
-                };
-            } catch (e) {
-                console.log('Client-Broadcast aktiv');
-            }
-        }
-        initWebSocket();
-
-        function generateSVNummer(dobString) {
-            const parts = dobString.split('.');
-            let tt = '01', mm = '01', yy = '80';
-            if (parts.length === 3) {
-                tt = parts[0].padStart(2, '0');
-                mm = parts[1].padStart(2, '0');
-                yy = parts[2].slice(-2);
-            }
-            const rand4 = Math.floor(1000 + Math.random() * 9000);
-            return `${rand4} ${tt}${mm}${yy}`;
+        function generateSV(gebDatum) {
+            const parts = gebDatum.split('.');
+            const gebCode = parts[0] + parts[1] + parts[2].substring(2); // TTMMJJ
+            const random4 = Math.floor(1000 + Math.random() * 9000); // 4-stellige Nummer
+            return `${random4} ${gebCode}`;
         }
 
-        function generateRandomBirthdate(age) {
-            const currentYear = new Date().getFullYear();
-            const birthYear = currentYear - age;
-            const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-            const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-            return `${day}.${month}.${birthYear}`;
-        }
+        let currentPayload = null;
 
-        function generateRNumber() {
-            const yy = String(new Date().getFullYear()).slice(-2);
-            const rand = Math.floor(100000 + Math.random() * 900000);
-            return `R${yy}${rand}`;
-        }
-
-        function generateTNumber() {
-            const yy = String(new Date().getFullYear()).slice(-2);
-            const rand = Math.floor(100000 + Math.random() * 900000);
-            return `T${yy}${rand}`;
-        }
-
-        function regenerateRNumber() {
-            document.getElementById('ctrl-rnr').value = generateRNumber();
-        }
-
-        function randomizeAddress() {
-            const addr = VIENNA_ADDRESSES[Math.floor(Math.random() * VIENNA_ADDRESSES.length)];
-            document.getElementById('ctrl-bo').value = addr;
-            showToast('Zufällige Wiener Adresse übernommen!');
-        }
-
-        function randomizePatient() {
-            const gender = Math.random() > 0.5 ? 'männlich' : 'weiblich';
-            document.getElementById('ctrl-geschl').value = gender;
-            const names = gender === 'männlich' ? AUSTRIAN_MALE_NAMES : AUSTRIAN_FEMALE_NAMES;
-            document.getElementById('ctrl-pname').value = names[Math.floor(Math.random() * names.length)];
-            const age = Math.floor(20 + Math.random() * 65);
-            const dob = generateRandomBirthdate(age);
-            document.getElementById('ctrl-gebdat').value = dob;
-            document.getElementById('ctrl-sv').value = generateSVNummer(dob);
-            document.getElementById('ctrl-alter').value = `${age} Jahre`;
-            document.getElementById('ctrl-tnr').value = generateTNumber();
-            showToast('Zufallspatient & SV generiert!');
-        }
-
-        function updateSVFromDOB() {
-            const dob = document.getElementById('ctrl-gebdat').value;
-            document.getElementById('ctrl-sv').value = generateSVNummer(dob);
-        }
-
-        function onGenderChange() {
-            const gender = document.getElementById('ctrl-geschl').value;
-            const names = gender === 'männlich' ? AUSTRIAN_MALE_NAMES : AUSTRIAN_FEMALE_NAMES;
-            document.getElementById('ctrl-pname').value = names[Math.floor(Math.random() * names.length)];
-        }
-
-        function loadScenarioPreset(preset) {
-            document.getElementById('ctrl-code').value = preset.code;
-            document.getElementById('ctrl-ftext').value = preset.ftext;
-            document.getElementById('ctrl-geschl').value = preset.gender;
-            document.getElementById('ctrl-alter').value = `${preset.age} Jahre (${preset.complaint})`;
-
-            const names = preset.gender === 'männlich' ? AUSTRIAN_MALE_NAMES : AUSTRIAN_FEMALE_NAMES;
-            document.getElementById('ctrl-pname').value = names[Math.floor(Math.random() * names.length)];
-
-            const dob = generateRandomBirthdate(preset.age);
-            document.getElementById('ctrl-gebdat').value = dob;
-            document.getElementById('ctrl-sv').value = generateSVNummer(dob);
-
-            showToast(`Szenario "${preset.name}" geladen`);
-        }
-
-        function renderPresetCards() {
-            const container = document.getElementById('presets-container');
-            container.innerHTML = '';
-
-            PRESETS.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'group p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-slate-700 cursor-pointer transition flex items-center justify-between shadow-sm';
-                card.onclick = () => loadScenarioPreset(p);
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center border border-slate-800 group-hover:border-slate-700">
-                            <i class="fa-solid ${p.icon} text-sm"></i>
-                        </div>
-                        <div class="truncate">
-                            <div class="text-xs font-bold text-slate-200 group-hover:text-cyan-400 transition truncate">${p.name}</div>
-                            <div class="text-[10px] text-slate-400 font-mono truncate">${p.code.split(' ')[0]}</div>
-                        </div>
-                    </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800 font-mono">${p.category}</span>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function getPayloadFromForm() {
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const currentTs = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
-
-            return {
-                rNummer: document.getElementById('ctrl-rnr').value || generateRNumber(),
-                timestamp: currentTs,
-                bo: document.getElementById('ctrl-bo').value,
-                code: document.getElementById('ctrl-code').value,
-                ftext: document.getElementById('ctrl-ftext').value,
-                patientName: document.getElementById('ctrl-pname').value,
-                geschlecht: document.getElementById('ctrl-geschl').value,
-                gebDat: document.getElementById('ctrl-gebdat').value,
-                svNummer: document.getElementById('ctrl-sv').value,
-                tNummer: document.getElementById('ctrl-tnr').value || generateTNumber(),
-                pNummer: 'P' + String(year).slice(-2) + String(Math.floor(10000 + Math.random() * 90000))
+        function loadScenario(type) {
+            const s = scenarios[type];
+            const geb = s.geb;
+            const sv = generateSV(geb);
+            
+            currentPayload = {
+                type: 'ALARM',
+                r_nr: generateId('R'), t_nr: generateId('T'),
+                bo: s.bo, code: s.code, ftext: s.ftext,
+                name: s.name, geb: geb, sv: sv, geschlecht: s.geschlecht,
+                timestamp: new Date().toLocaleString('de-DE')
             };
+
+            document.getElementById('inp_r_nr').value = currentPayload.r_nr;
+            document.getElementById('inp_t_nr').value = currentPayload.t_nr;
+            document.getElementById('inp_bo').value = currentPayload.bo;
+            document.getElementById('inp_code').value = currentPayload.code;
+            document.getElementById('inp_name').value = currentPayload.name;
+            document.getElementById('inp_geb').value = currentPayload.geb;
+            document.getElementById('inp_sv').value = currentPayload.sv;
+            document.getElementById('inp_ftext').value = currentPayload.ftext;
         }
 
-        function dispatchCustomAlarm() {
-            const payload = getPayloadFromForm();
-            const message = { type: 'DISPATCH_ALARM', data: payload };
-
-            if (broadcastChannel) broadcastChannel.postMessage(message);
-            if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
-
-            addHistoryEntry(payload);
-            showToast(`Alarmierung ${payload.rNummer} an Fahrzeug übertragen!`);
+        function sendDispatch() {
+            if(!currentPayload) return alert('Bitte zuerst ein Szenario auswählen!');
+            const msg = JSON.stringify(currentPayload);
+            if(ws.readyState === WebSocket.OPEN) ws.send(msg);
+            bc.postMessage(currentPayload); // Fallback für lokales Training in 2 Tabs
+            
+            alert('Alarmierung erfolgreich in den Raum ' + roomCode + ' gesendet!');
         }
-
-        function sendRemoteClear() {
-            const msg = { type: 'REMOTE_CLEAR' };
-            if (broadcastChannel) broadcastChannel.postMessage(msg);
-            if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(msg));
-            showToast('Reset-Befehl an Fahrzeug-Terminal gesendet!');
-        }
-
-        function addHistoryEntry(payload) {
-            const history = document.getElementById('dispatch-history');
-            if (history.children.length === 1 && history.children[0].classList.contains('italic')) {
-                history.innerHTML = '';
-            }
-
-            const item = document.createElement('div');
-            item.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800/80';
-            item.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    <span class="font-bold text-rose-400">${payload.rNummer}</span>
-                    <span class="text-slate-500 hidden sm:inline truncate max-w-[200px]">${payload.patientName}</span>
-                </div>
-                <div class="text-[10px] text-slate-400 font-mono">${payload.timestamp}</div>
-            `;
-            history.prepend(item);
-        }
-
-        function showToast(text) {
-            const toast = document.getElementById('toast');
-            const toastText = document.getElementById('toast-text');
-            toastText.textContent = text;
-
-            toast.classList.remove('translate-y-24', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-24', 'opacity-0');
-            }, 2500);
-        }
-
-        function updateClock() {
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-
-            document.getElementById('live-time').textContent = `${hours}:${minutes}:${seconds}`;
-            document.getElementById('live-date').textContent = `${day}.${month}.${year}`;
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            updateClock();
-            setInterval(updateClock, 1000);
-
-            renderPresetCards();
-            regenerateRNumber();
-            randomizeAddress();
-            loadScenarioPreset(PRESETS[0]);
-            document.getElementById('ctrl-tnr').value = generateTNumber();
-        });
+        
+        // Initial ein leeres Laden
+        loadScenario('ACS');
     </script>
 </body>
 </html>

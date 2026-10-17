@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sim Data Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #c0c0c0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; user-select: none; }
+        .win-outset { border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf; border-bottom: 2px solid #404040; border-right: 2px solid #404040; }
+        .win-inset { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #dfdfdf; border-right: 2px solid #dfdfdf; background-color: #e0e0e0; }
+        .win-input { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; background-color: transparent; padding: 2px 4px; }
+        .win-button { border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; background-color: #c0c0c0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .win-button:active:not(:disabled) { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; padding-top: 2px; padding-left: 2px; }
+        .win-button:disabled { opacity: 0.5; cursor: default; }
+        .win-group { border: 1px solid #808080; box-shadow: 1px 1px 0 #fff; position: relative; padding: 8px; }
+        
+        .tab-vertical { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; padding: 10px 4px; cursor: pointer; border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; background-color: #b0b0b0; margin-bottom: 2px; }
+        .tab-active { background-color: #c0c0c0; border-right: 2px solid #c0c0c0; font-weight: bold; }
+        .icon-svg { width: 20px; height: 20px; fill: #a0a0a0; }
+        
+        input, textarea { outline: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; font-weight: bold;}
+        .label-text { font-size: 11px; color: #555; text-transform: uppercase;}
+        
+        /* Modal & Overlay Overlay */
+        #alarm-modal, #bed-modal { background: rgba(0,0,0,0.5); }
+        .hospital-row:hover { background-color: #000080; color: white; }
+        .hospital-row.selected { background-color: #000080; color: white; }
+        .hospital-row.selected * { color: #ffffff !important; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Red Alarm Modal -->
+    <div id="alarm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-red-600 border-4 border-red-800 w-[560px] h-[270px] flex flex-col relative shadow-2xl p-4">
+            <div class="flex-1 flex flex-col items-center justify-start pt-9 text-black text-2xl md:text-[26px] font-bold text-center leading-snug">
+                Ein neuer Auftrag wurde empfangen!<br>
+                Auftragsnummer: <span id="alarm-r-nr"></span>
+            </div>
+            <button class="win-button w-16 h-16 absolute bottom-4 right-4 bg-[#c0c0c0]" onclick="acceptAlarm()">
+                <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#8cc63f"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bed List Modal -->
+    <div id="bed-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-[#c0c0c0] win-outset w-[800px] h-[500px] flex flex-col p-2 shadow-2xl">
+            <div class="flex justify-between items-center bg-[#000080] text-white px-2 py-1 mb-2 font-bold text-sm">
+                <span>Bettenübersicht</span>
+                <button class="win-button w-6 h-6 bg-[#c0c0c0]" onclick="document.getElementById('bed-modal').classList.add('hidden')">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 fill-black"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            
+            <div class="flex gap-2 flex-1 h-full overflow-hidden">
+                <div class="w-1/3 flex flex-col win-inset overflow-y-auto bg-white" id="bed-categories">
+                    <!-- Categories -->
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Interner Mann</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Interne Frau</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Kinderklinik - Intern</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Kinderklinik - Chirurgie</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Chirurgischer Mann</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Chirurgische Frau</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Unfall allgemein</div>
+                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">HNO Abteilung</div>
+                </div>
+                
+                <div class="w-2/3 flex flex-col win-inset bg-white overflow-hidden relative">
+                    <div class="flex bg-gray-300 font-bold text-xs p-1 border-b border-gray-400">
+                        <div class="w-16 text-center">Betten</div>
+                        <div class="w-24">Kürzel</div>
+                        <div class="flex-1">Krankenhaus</div>
+                    </div>
+                    <div id="hospital-list" class="flex-1 overflow-y-auto"></div>
+                </div>
+                
+                <div class="flex flex-col w-12 gap-2">
+                    <button class="win-button h-12" onclick="confirmHospitalBooking()">
+                        <svg class="icon-svg !w-6 !h-6" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#0055b3"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-2 flex gap-2">
+                <button class="win-button w-32 h-10 border-2 !border-red-600 font-bold" onclick="requestBeds()">Bettenliste anfordern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Finish Modal -->
+    <div id="finish-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-30">
+        <div class="bg-[#f0f0f0] border border-gray-400 w-[400px] flex flex-col items-center p-6 shadow-2xl">
+            <div class="text-xl font-bold mb-8 text-center">Soll der Auftrag wirklich<br>beendet werden?</div>
+            <div class="flex justify-between w-full px-4">
+                <button class="win-button w-16 h-16" onclick="document.getElementById('finish-modal').classList.add('hidden')">
+                    <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#e24a2b"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+                <button class="win-button w-16 h-16" onclick="clearAllData()">
+                    <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#8cc63f"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col p-1 gap-1">
+        
+        <!-- Header Info -->
+        <div class="win-group flex gap-2 p-2">
+            <div class="flex flex-col gap-1 w-1/2">
+                <div class="flex items-center gap-2">
+                    <span class="label-text w-6">EN:</span>
+                    <input type="text" id="ui-en" class="win-input flex-1 font-bold text-lg" readonly>
+                </div>
+                <div class="flex gap-2 h-full">
+                    <span class="label-text w-6">BO:</span>
+                    <textarea id="ui-bo" class="win-input flex-1 font-bold resize-none h-16" readonly></textarea>
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-1 w-1/2">
+                <div class="flex items-center gap-2">
+                    <span class="label-text w-6">TS:</span>
+                    <input type="text" id="ui-ts" class="win-input flex-1 font-bold text-lg" readonly>
+                    <span class="label-text ml-2">OANZ:</span>
+                    <input type="text" id="ui-oanz" class="win-input w-16 font-bold text-lg text-center" readonly>
+                </div>
+                <div class="flex gap-2 h-full">
+                    <span class="label-text w-6">IA:</span>
+                    <textarea id="ui-ia" class="win-input flex-1 resize-none h-16" readonly></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- QS Bar -->
+        <div class="flex items-center gap-2 px-2 mt-1">
+            <span class="label-text w-6">QS:</span>
+            <input type="text" id="ui-qs" class="win-input flex-1" readonly>
+        </div>
+
+        <!-- Tabs and Main Content Area -->
+        <div class="flex flex-1 gap-1 mt-1 overflow-hidden">
+            
+            <!-- Tab Buttons -->
+            <div class="flex flex-col w-8 z-10">
+                <div id="tab-daten-btn" class="tab-vertical tab-active flex-1" onclick="switchTab('daten')">Daten</div>
+                <div id="tab-patient-btn" class="tab-vertical flex-1" onclick="switchTab('patient')">Patient(en)</div>
+                <div class="h-10 win-button mt-auto mb-1">
+                    <svg viewBox="0 0 24 24" class="icon-svg" style="fill:#0055b3"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="win-outset flex-1 bg-[#c0c0c0] relative -ml-[2px] p-2 flex flex-col z-0">
+                
+                <!-- DATEN TAB -->
+                <div id="tab-daten" class="flex flex-col gap-2 flex-1">
+                    <div class="flex items-center gap-2">
+                        <span class="label-text w-12">STATUS:</span>
+                        <input type="text" id="status-field" class="win-input flex-1 font-bold text-lg" readonly>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="label-text w-12">CODE:</span>
+                        <input type="text" id="ui-code" class="win-input flex-1 font-bold text-lg" readonly>
+                    </div>
+                    <div class="flex gap-2 flex-1">
+                        <span class="label-text w-12 pt-1">FTEXT:</span>
+                        <textarea id="ui-ftext" class="win-input flex-1 resize-none font-bold h-full"></textarea>
+                    </div>
+
+                    <!-- Workflow Buttons (Daten) -->
+                    <div id="action-bar-daten" class="flex gap-2 mt-auto pt-2 win-group">
+                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#d9534f"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6" stroke="#fff" stroke-width="2" fill="none"/></svg></button>
+                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#5bc0de"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#5bc0de" stroke-width="2"/><line x1="4" y1="8" x2="20" y2="8" stroke="#5bc0de" stroke-width="2"/><line x1="8" y1="4" x2="8" y2="20" stroke="#5bc0de" stroke-width="2"/></svg></button>
+                        <div class="flex-1"></div>
+                        
+                        <button id="btn-zum-bo" class="win-button w-12 h-12" onclick="advanceWorkflow(1)" disabled>
+                            <svg id="icon-zum-bo" class="icon-svg" viewBox="0 0 24 24"><path d="M5 10 H13 V6 L21 12 L13 18 V14 H5 Z M22 6 H24 V18 H22 Z"/></svg>
+                        </button>
+                        <button id="btn-am-bo" class="win-button w-12 h-12" onclick="advanceWorkflow(2)" disabled>
+                            <svg id="icon-am-bo" class="icon-svg" viewBox="0 0 24 24"><path d="M10 4 V12 H6 L12 20 L18 12 H14 V4 Z M6 22 H18 V24 H6 Z"/></svg>
+                        </button>
+
+                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+                    </div>
+                </div>
+
+                <!-- PATIENT TAB -->
+                <div id="tab-patient" class="flex-col gap-2 flex-1 hidden">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span id="ui-pat-id" class="font-bold text-lg border-b border-gray-400 pr-4 pb-1"></span>
+                    </div>
+                    <div class="flex gap-2 mb-1">
+                        <span class="label-text w-12">NAME:</span>
+                        <input type="text" id="ui-pat-name" class="win-input flex-1 font-bold" readonly>
+                        <span class="label-text ml-2">PANZ:</span>
+                        <input type="text" id="ui-panz" class="win-input w-12 text-center font-bold text-lg" readonly>
+                    </div>
+                    <div class="flex gap-2 mb-1">
+                        <span class="label-text w-12">STAT:</span>
+                        <input type="text" id="ui-pat-stat" class="win-input flex-1 font-bold text-lg" readonly>
+                    </div>
+                    <div class="flex gap-2 mb-1 h-16">
+                        <div class="flex flex-col w-2/3 gap-1">
+                            <div class="flex gap-2">
+                                <span class="label-text w-12">SV:</span>
+                                <input type="text" id="ui-sv" class="win-input flex-1 font-bold" readonly>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="label-text w-12">T-NR:</span>
+                                <input type="text" id="ui-t-nr" class="win-input flex-1 font-bold text-lg" readonly>
+                            </div>
+                        </div>
+                        <div class="flex flex-col w-1/3 gap-1">
+                            <div class="flex gap-2">
+                                <span class="label-text w-16">GEBDAT:</span>
+                                <input type="text" id="ui-geb" class="win-input flex-1 font-bold text-lg" readonly>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="label-text w-16">GESCHL:</span>
+                                <input type="text" id="ui-geschl" class="win-input flex-1 font-bold text-lg" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mb-1">
+                        <span class="label-text w-12">Ziel:</span>
+                        <input type="text" id="ui-ziel" class="win-input flex-1 font-bold" readonly>
+                    </div>
+                    
+                    <div id="action-bar-patient" class="flex items-center gap-2 mt-auto p-1 win-group">
+                        <button class="win-button w-10 h-10"><svg class="icon-svg" style="fill:#8cc63f" viewBox="0 0 24 24"><path d="M14 6l5 5-5 5v-4H4v-2h10V6z M20 6h2v10h-2z"/></svg></button>
+                        
+                        <!-- Open Bed Modal -->
+                        <button class="win-button w-10 h-10" onclick="document.getElementById('bed-modal').classList.remove('hidden')">
+                            <svg class="icon-svg" style="fill:#0055b3" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        </button>
+                        
+                        <div class="flex-1"></div>
+                        
+                        <!-- Green Arrows (Patient Tab) -->
+                        <button id="btn-zum-ao" class="win-button w-12 h-12" onclick="advanceWorkflow(3)" disabled>
+                            <svg id="icon-zum-ao" class="icon-svg" viewBox="0 0 24 24"><path d="M5 10 H13 V6 L21 12 L13 18 V14 H5 Z M22 6 H24 V18 H22 Z"/></svg>
+                        </button>
+                        <button id="btn-am-ao" class="win-button w-12 h-12" onclick="advanceWorkflow(4)" disabled>
+                            <svg id="icon-am-ao" class="icon-svg" viewBox="0 0 24 24"><path d="M10 4 V12 H6 L12 20 L18 12 H14 V4 Z M6 22 H18 V24 H6 Z"/></svg>
+                        </button>
+
+                        <div class="w-4"></div>
+                        
+                        <!-- Red Checkmark to Finish -->
+                        <button id="btn-finish" class="win-button w-12 h-12" onclick="openFinishModal()" disabled>
+                            <svg id="icon-finish" viewBox="0 0 24 24" class="w-8 h-8" style="fill:#a0a0a0"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar Panel -->
+            <div class="flex flex-col w-12 z-10 gap-1 mt-2">
+                <button class="win-button h-12 mb-2"><svg class="icon-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#a0a0a0" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#a0a0a0" stroke-width="2"/><path d="M18 14l4 4-4 4v-8z" fill="#a0a0a0"/></svg></button>
+                <div class="flex-1"></div>
+                <button class="win-button h-12 mb-1"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#5bc0de"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h8v2H8V8zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"/><path d="M20 18h4v-4l-4 4z" fill="#8cc63f"/></svg></button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="win-outset flex items-center h-8 bg-[#404040] text-white px-2 mt-1">
+            <span class="text-xs mr-4">ASB-915</span>
+            <div class="flex-1 flex justify-center items-center gap-4 text-xs font-bold">
+                <span>ABK-ABZ-SIM | Raum: <span id="sys-room-code" class="text-yellow-400"></span></span>
+                <span class="flex items-center gap-1"><svg class="w-3 h-3 fill-blue-400" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Bereit</span>
+                <span>Angemeldet</span>
+            </div>
+            <div class="flex items-center text-xs font-bold gap-2">
+                <span id="clock-date"></span>
+                <span id="clock-time"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // RAUM-LOGIK AUSLESEN
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('room') || 'SIM1';
+        document.getElementById('sys-room-code').innerText = roomCode;
+
+        // Netzwerk-Setup (Raum im WS-Pfad mitgeben)
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let ws = new WebSocket(`${protocol}//${location.host}?room=${roomCode}`);
+        const bc = new BroadcastChannel('sim_data_' + roomCode);
+
+        let currentAlarmData = null;
+        let workflowStep = 0; 
+        
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock-date').innerText = now.toLocaleDateString('de-DE');
+            document.getElementById('clock-time').innerText = now.toLocaleTimeString('de-DE');
+        }, 1000);
+
+        function handleIncomingMessage(msg) {
+            try {
+                const data = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
+                if(data.type === 'ALARM') {
+                    currentAlarmData = data;
+                    document.getElementById('alarm-r-nr').innerText = data.r_nr;
+                    document.getElementById('alarm-modal').classList.remove('hidden');
+                }
+            } catch(e){}
+        }
+
+        ws.onmessage = handleIncomingMessage;
+        bc.onmessage = handleIncomingMessage;
+
+        function acceptAlarm() {
+            document.getElementById('alarm-modal').classList.add('hidden');
+            if(!currentAlarmData) return;
+
+            // Fill UI
+            document.getElementById('ui-en').value = currentAlarmData.r_nr;
+            document.getElementById('ui-ts').value = currentAlarmData.timestamp;
+            document.getElementById('ui-oanz').value = '1/1';
+            document.getElementById('ui-bo').value = currentAlarmData.bo;
+            document.getElementById('ui-code').value = currentAlarmData.code;
+            document.getElementById('ui-ftext').value = currentAlarmData.ftext;
+            
+            document.getElementById('ui-pat-id').innerText = 'P' + Math.floor(Math.random()*900000+100000);
+            document.getElementById('ui-pat-name').value = currentAlarmData.name;
+            document.getElementById('ui-panz').value = '1';
+            document.getElementById('ui-pat-stat').value = 'Patient vorhanden';
+            document.getElementById('ui-sv').value = currentAlarmData.sv;
+            document.getElementById('ui-t-nr').value = currentAlarmData.t_nr;
+            document.getElementById('ui-geb').value = currentAlarmData.geb;
+            document.getElementById('ui-geschl').value = currentAlarmData.geschlecht;
+            document.getElementById('ui-ziel').value = ''; // Reset Ziel
+
+            // Enable First Step
+            document.getElementById('status-field').value = "Einsatz übernommen";
+            workflowStep = 0;
+            updateButtons();
+        }
+
+        function switchTab(tabName) {
+            if(tabName === 'daten') {
+                document.getElementById('tab-daten').classList.remove('hidden');
+                document.getElementById('tab-patient').classList.add('hidden');
+                document.getElementById('tab-daten-btn').classList.add('tab-active');
+                document.getElementById('tab-patient-btn').classList.remove('tab-active');
+            } else {
+                document.getElementById('tab-daten').classList.add('hidden');
+                document.getElementById('tab-patient').classList.remove('hidden');
+                document.getElementById('tab-patient').classList.add('flex');
+                document.getElementById('tab-daten-btn').classList.remove('tab-active');
+                document.getElementById('tab-patient-btn').classList.add('tab-active');
+            }
+        }
+
+        function advanceWorkflow(step) {
+            workflowStep = step;
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const sf = document.getElementById('status-field');
+            const bZumBo = document.getElementById('btn-zum-bo'); const iZumBo = document.getElementById('icon-zum-bo');
+            const bAmBo = document.getElementById('btn-am-bo');   const iAmBo = document.getElementById('icon-am-bo');
+            const bZumAo = document.getElementById('btn-zum-ao'); const iZumAo = document.getElementById('icon-zum-ao');
+            const bAmAo = document.getElementById('btn-am-ao');   const iAmAo = document.getElementById('icon-am-ao');
+            const bFin = document.getElementById('btn-finish');   const iFin = document.getElementById('icon-finish');
+
+            const hasHospital = document.getElementById('ui-ziel').value.trim() !== "";
+
+            // Reset all
+            bZumBo.disabled=true; bAmBo.disabled=true; bZumAo.disabled=true; bAmAo.disabled=true; bFin.disabled=true;
+            iZumBo.classList.remove('icon-active-blue'); iAmBo.classList.remove('icon-active-blue');
+            iZumAo.classList.remove('icon-active-green'); iAmAo.classList.remove('icon-active-green');
+            iFin.style.fill = '#a0a0a0';
+
+            if(workflowStep === 0 && document.getElementById('ui-en').value) {
+                bZumBo.disabled = false;
+            }
+            if(workflowStep >= 1) { sf.value = "Zum Berufungsort"; bAmBo.disabled = false; iZumBo.classList.add('icon-active-blue'); }
+            if(workflowStep >= 2) { sf.value = "Am Berufungsort"; bZumAo.disabled = !hasHospital; iAmBo.classList.add('icon-active-blue'); }
+            if(workflowStep >= 3) { sf.value = "Zum Abgabeort"; bAmAo.disabled = false; iZumAo.classList.add('icon-active-green'); }
+            if(workflowStep >= 4) { sf.value = "Am Abgabeort"; bFin.disabled = false; iAmAo.classList.add('icon-active-green'); iFin.style.fill = '#e24a2b'; }
+        }
+
+        // Bed Booking Logic
+        const hospitals = [
+            { k: '@KHR', n: 'Klinikum Herz-Rupert' },
+            { k: '@SMZ', n: 'St. Markus Zentrum' },
+            { k: '@WKH', n: 'Waldviertel Klinikum Hietzing' },
+            { k: '@DKW', n: 'Donau-Klinik West' }
+        ];
+        let selectedHospital = null;
+
+        function selectCategory(el) {
+            document.querySelectorAll('#bed-categories div').forEach(d => d.classList.remove('bg-gray-300', 'font-bold'));
+            el.classList.add('bg-gray-300', 'font-bold');
+        }
+
+        function requestBeds() {
+            const list = document.getElementById('hospital-list');
+            list.innerHTML = '';
+            selectedHospital = null;
+            
+            const num = Math.floor(Math.random() * 4) + 1; // 1-4
+            let shuffled = [...hospitals].sort(() => 0.5 - Math.random()).slice(0, num);
+            
+            shuffled.forEach(h => {
+                const beds = Math.floor(Math.random() * 8) + 1; // 1-8
+                const row = document.createElement('div');
+                row.className = 'flex border-b cursor-pointer p-1 text-sm hospital-row items-center font-bold text-gray-700';
+                row.onclick = () => {
+                    document.querySelectorAll('.hospital-row').forEach(r => r.classList.remove('selected'));
+                    row.classList.add('selected');
+                    selectedHospital = h.k + ' ' + h.n;
+                };
+                row.innerHTML = `<div class="w-16 text-center text-lg">${beds}</div><div class="w-24 text-[#000080]">${h.k}</div><div class="flex-1">${h.n}</div>`;
+                list.appendChild(row);
+            });
+        }
+
+        function confirmHospitalBooking() {
+            if(selectedHospital) {
+                document.getElementById('ui-ziel').value = selectedHospital;
+                document.getElementById('bed-modal').classList.add('hidden');
+                
+                // If we were already driving to or arrived at old target, reset to "Zum Abgabeort"
+                if(workflowStep >= 3) {
+                    workflowStep = 2; // Jump back to "Am Berufungsort" so they can drive again
+                }
+                updateButtons();
+            }
+        }
+
+        function openFinishModal() { document.getElementById('finish-modal').classList.remove('hidden'); }
+
+        function clearAllData() {
+            document.querySelectorAll('input:not(#status-field), textarea').forEach(el => el.value = '');
+            document.getElementById('ui-pat-id').innerText = '';
+            document.getElementById('status-field').value = '';
+            document.getElementById('finish-modal').classList.add('hidden');
+            currentAlarmData = null;
+            workflowStep = 0;
+            updateButtons();
+            switchTab('daten');
+        }
+    </script>
+</body>
+</html>

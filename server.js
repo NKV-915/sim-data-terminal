@@ -1,58 +1,38 @@
 const express = require('express');
 const http = require('http');
-const path = require('path');
-const { WebSocketServer } = require('ws');
+const WebSocket = require('ws');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Statische Dateien ausliefern
-app.use(express.static(path.join(__dirname)));
-
-// Route für das Fahrzeug-Terminal
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Route für die Leitstellen-Steuerung
-app.get('/control', (req, res) => {
-    res.sendFile(path.join(__dirname, 'control.html'));
-});
-
-// HTTP-Server erstellen
 const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-// WebSocket-Server für Echtzeit-Synchronisation zwischen Geräten
-const wss = new WebSocketServer({ server, path: '/ws' });
+// Statische HTML/JS/CSS Dateien aus dem Projektordner ausliefern
+app.use(express.static(__dirname));
 
-wss.on('connection', (ws) => {
-    console.log('⚡ Neues Gerät (Terminal oder Steuerungskonsole) verbunden.');
+// WebSocket-Server mit Raum-Logik
+wss.on('connection', (ws, req) => {
+    // Raum aus der URL abfragen (Standard: SIM1)
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const room = url.searchParams.get('room') || 'SIM1';
+    
+    ws.room = room; // Raum auf dem Client-Objekt speichern
+    console.log(`📡 Neuer Client verbunden in Raum: ${room}`);
 
-    ws.on('message', (data) => {
-        try {
-            const message = JSON.parse(data.toString());
-            console.log('📡 Übertragung empfangen:', message.type);
-
-            // Nachricht an alle anderen verbundenen Geräte weiterleiten
-            wss.clients.forEach((client) => {
-                if (client !== ws && client.readyState === ws.OPEN) {
-                    client.send(JSON.stringify(message));
-                }
-            });
-        } catch (err) {
-            console.error('Fehler beim Verarbeiten der Nachricht:', err);
-        }
+    ws.on('message', (message) => {
+        // Nachricht NUR an Clients im selben Raum weiterleiten
+        wss.clients.forEach((client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN && client.room === room) {
+                client.send(message);
+            }
+        });
     });
 
     ws.on('close', () => {
-        console.log('Gerät getrennt.');
+        console.log(`🔌 Client aus Raum ${room} getrennt.`);
     });
 });
 
-server.listen(port, () => {
-    console.log(`====================================================`);
-    console.log(`🚀 Sim Data Terminal Server läuft auf Port ${port}`);
-    console.log(`💻 Fahrzeug-Terminal:  http://localhost:${port}/`);
-    console.log(`🎛️  Leitstellen-Pult:   http://localhost:${port}/control`);
-    console.log(`====================================================`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`🚀 Server läuft auf Port ${PORT}`);
 });
