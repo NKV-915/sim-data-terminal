@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sim Data Terminal</title>
 
-    <!-- PWA & Safe Area Einstellungen -->
+    <!-- iPadOS / iOS PWA Einstellungen -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -27,7 +27,7 @@
             --title-blue-end: #1084d0;
         }
 
-        /* Safe-Area-Padding verhindert das Hineinragen in Uhrzeit & Akkuanzeige */
+        /* Dezenter Abstand zu den iPad-Statusleisten */
         body {
             background-color: #000000;
             font-family: Tahoma, "Segoe UI", Arial, sans-serif;
@@ -36,16 +36,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             margin: 0;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
             overflow: hidden;
-            padding-top: max(env(safe-area-inset-top), 24px);
-            padding-bottom: max(env(safe-area-inset-bottom), 8px);
-            padding-left: max(env(safe-area-inset-left), 8px);
-            padding-right: max(env(safe-area-inset-right), 8px);
+            padding-top: max(env(safe-area-inset-top), 6px);
+            padding-bottom: max(env(safe-area-inset-bottom), 4px);
+            padding-left: max(env(safe-area-inset-left), 4px);
+            padding-right: max(env(safe-area-inset-right), 4px);
             box-sizing: border-box;
         }
 
@@ -177,16 +178,15 @@
 </head>
 <body>
 
-    <!-- Terminal-Rahmen passt sich an die verbleibende Bildschirmhöhe an -->
-    <div class="win-raised w-full max-w-[1140px] h-full max-h-[740px] flex flex-col relative">
+    <div class="win-raised w-full h-full flex flex-col relative">
         
         <!-- Titelleiste -->
-        <div class="h-8 bg-gradient-to-r from-[var(--title-blue-start)] to-[var(--title-blue-end)] flex items-center justify-between px-2 m-[2px]">
+        <div class="h-8 bg-gradient-to-r from-[var(--title-blue-start)] to-[var(--title-blue-end)] flex items-center justify-between px-2 m-[2px] shrink-0">
             <div class="flex items-center text-white font-bold text-[12px] tracking-wide ml-1">
                 <i class="fa-solid fa-desktop mr-2 text-[12px]"></i>
                 <span id="title-text">Sim Data Terminal</span>
                 <span class="ml-3 px-2 py-[1px] bg-blue-900/60 text-[10px] rounded border border-blue-400/40 text-blue-100 font-mono">
-                    ASB WIEN NOTFALLRETTUNG &bull; <span id="header-room-code" class="text-yellow-300 font-bold">SIM1</span>
+                    SIM NOTFALLRETTUNG &bull; <span id="header-room-code" class="text-yellow-300 font-bold">SIM1</span>
                 </span>
             </div>
             
@@ -198,24 +198,29 @@
         </div>
 
         <!-- Terminal Hauptansicht -->
-        <div id="view-mdt" class="flex-1 flex flex-row overflow-hidden p-1 pt-0">
+        <div id="view-mdt" class="flex-1 flex flex-row overflow-hidden p-1 pt-0 min-h-0">
+            
+            <!-- Linker Arbeitsbereich -->
             <div class="flex-1 flex flex-col gap-1 p-1 overflow-hidden">
-                <div class="flex flex-row items-center gap-2 h-9">
+                
+                <!-- Kopfbereich: EN, TS, OANZ -->
+                <div class="flex flex-row items-center gap-2 h-9 shrink-0">
                     <div class="flex items-center w-[30%]">
                         <label class="w-8 font-semibold text-gray-800 text-xs">EN:</label>
-                        <input id="input-en" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
+                        <input id="input-en" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
                     </div>
                     <div class="flex items-center w-[50%]">
                         <label class="w-8 text-right pr-2 font-semibold text-gray-800 text-xs">TS:</label>
-                        <input id="input-ts" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
+                        <input id="input-ts" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
                     </div>
                     <div class="flex items-center w-[20%]">
                         <label class="w-12 text-right pr-2 font-semibold text-gray-800 text-xs">OANZ:</label>
-                        <input id="input-oanz" type="text" readonly class="win-field font-bold text-sm text-center flex-1 h-full">
+                        <input id="input-oanz" type="text" value="" readonly class="win-field font-bold text-sm text-center flex-1 h-full">
                     </div>
                 </div>
 
-                <div class="flex flex-row gap-2 h-44">
+                <!-- Adressbereich: BO & IA -->
+                <div class="flex flex-row gap-2 h-40 shrink-0">
                     <div class="flex flex-row flex-1">
                         <label class="w-8 pt-1 font-semibold text-gray-800 text-xs">BO:</label>
                         <textarea id="input-bo" readonly class="win-field font-bold text-[13px] flex-1 h-full uppercase resize-none leading-relaxed"></textarea>
@@ -226,13 +231,17 @@
                     </div>
                 </div>
 
-                <div class="flex flex-row items-center h-7">
+                <!-- QS Zeile -->
+                <div class="flex flex-row items-center h-7 shrink-0">
                     <label class="w-8 font-semibold text-gray-800 text-xs">QS:</label>
                     <input id="input-qs" type="text" readonly class="win-field flex-1 h-full">
                 </div>
 
+                <!-- Reiterbereich -->
                 <div class="flex-1 flex flex-row mt-1 min-h-0">
-                    <div class="w-10 flex flex-col pt-1 select-none">
+                    
+                    <!-- Vertikale Reiterknöpfe -->
+                    <div class="w-10 flex flex-col pt-1 select-none shrink-0">
                         <div id="tab-daten-btn" class="tab-btn-active flex-1 flex flex-col items-center justify-center py-2" onclick="switchTab('daten')">
                             <span id="tab-daten-text" class="vertical-text font-bold text-xs text-gray-950">Daten</span>
                             <i class="fa-regular fa-file-lines text-gray-700 mt-2 text-base"></i>
@@ -244,23 +253,23 @@
                     </div>
 
                     <!-- Panel: Daten -->
-                    <div id="pane-daten" class="win-raised flex-1 flex flex-col p-2 bg-[var(--win-bg)] z-10 border-r-2 border-b-2">
-                        <div class="flex flex-col gap-2 flex-1">
-                            <div class="flex items-center h-8">
+                    <div id="pane-daten" class="win-raised flex-1 flex flex-col p-2 bg-[var(--win-bg)] z-10 border-r-2 border-b-2 overflow-hidden">
+                        <div class="flex flex-col gap-2 flex-1 min-h-0">
+                            <div class="flex items-center h-8 shrink-0">
                                 <label class="w-20 uppercase text-xs font-semibold text-gray-800">STATUS:</label>
-                                <input id="input-status" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
+                                <input id="input-status" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
                             </div>
-                            <div class="flex items-center h-8">
+                            <div class="flex items-center h-8 shrink-0">
                                 <label class="w-20 uppercase text-xs font-semibold text-gray-800">CODE:</label>
-                                <input id="input-code" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
+                                <input id="input-code" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
                             </div>
-                            <div class="flex flex-row flex-1 min-h-[90px]">
+                            <div class="flex flex-row flex-1 min-h-0">
                                 <label class="w-20 uppercase text-xs pt-1 font-semibold text-gray-800">FTEXT:</label>
                                 <textarea id="input-ftext" readonly class="win-field font-bold text-sm flex-1 h-full resize-none leading-relaxed"></textarea>
                             </div>
                         </div>
 
-                        <div class="flex flex-row justify-between items-end mt-2 h-14">
+                        <div class="flex flex-row justify-between items-end mt-2 h-14 shrink-0">
                             <div class="flex gap-2">
                                 <button onclick="triggerAlarmModal()" class="win-btn w-12 h-12" title="Test-Alarm auslösen">
                                     <i class="fa-solid fa-envelope text-[#c83232] text-2xl"></i>
@@ -272,17 +281,19 @@
                             </div>
                             
                             <div class="flex gap-2">
-                                <button id="btn-zum-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(1)">
+                                <button id="btn-zum-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(1)" title="Schritt 1: Zum Berufungsort">
                                     <svg viewBox="0 0 24 24" class="w-7 h-7">
                                         <path id="svg-zum-bo" fill="#888888" d="M4 10h8V6l7 6-7 6v-4H4v-4zm16-4h2.5v12H20V6z"/>
                                     </svg>
                                 </button>
-                                <button id="btn-am-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(2)">
+
+                                <button id="btn-am-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(2)" title="Schritt 2: Am Berufungsort">
                                     <svg viewBox="0 0 24 24" class="w-7 h-7">
                                         <path id="svg-am-bo" fill="#888888" d="M10 4v8H6l6 7 6-7h-4V4h-4zm-6 16h16v2.5H4V20z"/>
                                     </svg>
                                 </button>
-                                <button onclick="openFinishModal()" class="win-btn w-12 h-12">
+
+                                <button onclick="openFinishModal()" class="win-btn w-12 h-12" title="Abbrechen">
                                     <i class="fa-solid fa-xmark text-gray-500 text-3xl"></i>
                                 </button>
                             </div>
@@ -290,38 +301,38 @@
                     </div>
 
                     <!-- Panel: Patient(en) -->
-                    <div id="pane-patient" class="win-raised flex-1 hidden flex-col p-2 bg-[var(--win-bg)] z-10 border-r-2 border-b-2">
-                        <div class="flex flex-col flex-1">
-                            <div class="flex">
+                    <div id="pane-patient" class="win-raised flex-1 hidden flex-col p-2 bg-[var(--win-bg)] z-10 border-r-2 border-b-2 overflow-hidden">
+                        <div class="flex flex-col flex-1 min-h-0">
+                            <div class="flex shrink-0">
                                 <div class="bg-[var(--win-bg)] border-t-2 border-l-2 border-r-2 border-[var(--win-light)] px-3 py-[2px] relative z-10 -mb-[2px]">
                                     <span id="patient-tab-title" class="font-bold text-[13px]"></span>
                                 </div>
                             </div>
 
-                            <div class="win-raised flex-1 flex flex-col p-2 justify-between">
+                            <div class="win-raised flex-1 flex flex-col p-2 justify-between min-h-0">
                                 <div class="flex flex-row gap-2">
                                     <div class="flex-1 flex flex-col gap-2">
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">NAME:</label>
                                             <input id="input-p-name" type="text" class="win-field flex-1 h-7 font-bold">
                                             <label class="text-xs font-semibold text-gray-800 w-10 text-right">PANZ:</label>
-                                            <input id="input-p-panz" type="text" readonly class="win-field w-12 h-7 font-bold text-center">
+                                            <input id="input-p-panz" type="text" value="" readonly class="win-field w-12 h-7 font-bold text-center">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">STAT:</label>
-                                            <input id="input-p-stat" type="text" readonly class="win-field flex-1 h-7 font-bold">
+                                            <input id="input-p-stat" type="text" value="" readonly class="win-field flex-1 h-7 font-bold">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">SV:</label>
                                             <input id="input-p-sv" type="text" class="win-field flex-1 h-7 font-mono font-bold text-sm tracking-wider">
                                             <label class="text-xs font-semibold text-gray-800 w-16 text-right">GEBDAT:</label>
-                                            <input id="input-p-gebdat" type="text" readonly class="win-field w-32 h-7 font-bold font-mono">
+                                            <input id="input-p-gebdat" type="text" value="" readonly class="win-field w-32 h-7 font-bold font-mono">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">T-NR:</label>
-                                            <input id="input-p-tnr" type="text" readonly class="win-field flex-1 h-7 font-bold font-mono">
+                                            <input id="input-p-tnr" type="text" value="" readonly class="win-field flex-1 h-7 font-bold font-mono">
                                             <label class="text-xs font-semibold text-gray-800 w-16 text-right">GESCHL:</label>
-                                            <input id="input-p-geschl" type="text" readonly class="win-field w-32 h-7 font-bold">
+                                            <input id="input-p-geschl" type="text" value="" readonly class="win-field w-32 h-7 font-bold">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">PLS-ID:</label>
@@ -329,11 +340,11 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">Ziel:</label>
-                                            <input id="input-p-ziel" type="text" readonly class="win-field flex-1 h-7 font-bold text-blue-900">
+                                            <input id="input-p-ziel" type="text" value="" readonly class="win-field flex-1 h-7 font-bold text-blue-900">
                                         </div>
                                     </div>
 
-                                    <div class="flex flex-col gap-2 w-12">
+                                    <div class="flex flex-col gap-2 w-12 shrink-0">
                                         <button class="win-btn w-11 h-10 relative">
                                             <i class="fa-solid fa-user text-[#3264c8] text-xl"></i>
                                             <i class="fa-solid fa-plus text-[#84c225] text-xs absolute right-1 bottom-1 font-bold"></i>
@@ -345,7 +356,7 @@
                                     </div>
                                 </div>
 
-                                <div class="flex flex-row justify-between items-end pt-2">
+                                <div class="flex flex-row justify-between items-end pt-2 shrink-0">
                                     <div class="flex gap-1 flex-wrap items-center">
                                         <button id="btn-zum-ao" class="win-btn w-11 h-11" disabled onclick="handleWorkflowStep(3)">
                                             <svg viewBox="0 0 24 24" class="w-6 h-6">
@@ -395,7 +406,7 @@
             </div>
 
             <!-- Seitenleiste rechts -->
-            <div class="w-14 win-raised ml-1 flex flex-col justify-between p-1 bg-[var(--win-bg)]">
+            <div class="w-14 win-raised ml-1 flex flex-col justify-between p-1 bg-[var(--win-bg)] shrink-0">
                 <div class="flex flex-col gap-2 mt-1">
                     <button class="win-btn w-full h-12"><i class="fa-solid fa-diagram-project text-[#6496c8] text-2xl"></i></button>
                     <button class="win-btn w-full h-12 relative"><i class="fa-solid fa-user text-gray-500 text-xl"></i></button>
@@ -417,10 +428,25 @@
                         <div class="category-row selected px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Interner Mann')">Interner Mann</div>
                         <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Interne Frau')">Interne Frau</div>
                         <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Kinderklinik -Intern')">Kinderklinik -Intern</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Kinderklinik - Chirurgie')">Kinderklinik - Chirurgie</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Chirurgischer Mann')">Chirurgischer Mann</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Chirurgische Frau')">Chirurgische Frau</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Unfall allgemein')">Unfall allgemein</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Betriebsunfall')">Betriebsunfall</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Unfallchirurgischer Schenkel...')">Unfallchirurgischer Schenkel...</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Neurologischer Mann')">Neurologischer Mann</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Neurologische Frau')">Neurologische Frau</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Hautabteilung')">Hautabteilung</div>
+                        <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'Urologische Abteilung')">Urologische Abteilung</div>
                         <div class="category-row px-2 py-[5px] cursor-pointer border-b border-gray-200" onclick="selectCategory(this, 'HNO Abteilung')">HNO Abteilung</div>
                     </div>
                 </div>
-                <div class="flex flex-row items-center justify-between gap-1 h-12 pt-1">
+                <div class="flex flex-row items-center justify-between gap-1 h-12 pt-1 shrink-0">
+                    <div class="flex items-center gap-1">
+                        <button class="win-btn w-9 h-9 text-gray-500"><i class="fa-solid fa-caret-up text-base"></i></button>
+                        <span class="text-[11px] font-bold px-1 select-none">1 von 14</span>
+                        <button class="win-btn w-9 h-9 text-[#0055b3]"><i class="fa-solid fa-caret-down text-base"></i></button>
+                    </div>
                     <button onclick="requestBeds()" class="win-btn btn-anfordern-red h-9 px-2 text-[11px] font-bold leading-tight text-center">
                         Bettenliste<br>anfordern
                     </button>
@@ -434,29 +460,56 @@
                         <div class="w-24 px-2 border-r border-gray-400">Kürzel</div>
                         <div class="flex-1 px-2">Krankenhaus</div>
                     </div>
-                    <div id="hospital-table-body" class="flex flex-col text-xs select-none"></div>
+                    <div id="hospital-table-body" class="flex flex-col text-xs select-none">
+                        <div class="text-gray-400 italic p-3 text-center">Keine Bettenliste angefordert. Bitte Kategorie wählen und "Bettenliste anfordern" klicken.</div>
+                    </div>
+                </div>
+                <div class="flex flex-row items-center justify-end gap-1 h-12 pt-1 pr-2 shrink-0">
+                    <button class="win-btn w-9 h-9 text-gray-400"><i class="fa-solid fa-caret-up text-base"></i></button>
+                    <span id="hospital-count-text" class="text-[11px] font-bold px-2 select-none">0 von 0</span>
+                    <button class="win-btn w-9 h-9 text-gray-400"><i class="fa-solid fa-caret-down text-base"></i></button>
                 </div>
             </div>
 
-            <div class="w-14 win-raised ml-1 flex flex-col justify-between p-1 bg-[var(--win-bg)]">
-                <button id="btn-confirm-hospital" onclick="confirmHospitalBooking()" class="win-btn w-full h-12">
-                    <i class="fa-solid fa-location-dot text-[#3264c8] text-2xl"></i>
-                </button>
-                <button onclick="closeBettenOverview()" class="win-btn w-full h-12">
-                    <i class="fa-solid fa-arrow-rotate-left text-[#3264c8] text-2xl"></i>
-                </button>
+            <div class="w-14 win-raised ml-1 flex flex-col justify-between p-1 bg-[var(--win-bg)] shrink-0">
+                <div class="flex flex-col gap-2 mt-1 items-center">
+                    <button id="btn-confirm-hospital" onclick="confirmHospitalBooking()" class="win-btn w-full h-12" title="Ausgewähltes Zielkrankenhaus buchen">
+                        <i class="fa-solid fa-location-dot text-[#3264c8] text-2xl"></i>
+                    </button>
+
+                    <div class="tab-btn-active w-full flex flex-col items-center justify-center py-3 mt-2">
+                        <i class="fa-solid fa-bed text-[#3264c8] text-base mb-2"></i>
+                        <span class="vertical-text font-bold text-xs text-gray-950">Bettenliste</span>
+                    </div>
+
+                    <div class="tab-btn-inactive w-full flex flex-col items-center justify-center py-3">
+                        <i class="fa-solid fa-location-dot text-[#3264c8] text-base mb-2"></i>
+                        <span class="vertical-text text-xs text-gray-700">Krankenhäuser</span>
+                    </div>
+
+                    <div class="tab-btn-inactive w-full flex flex-col items-center justify-center py-3">
+                        <i class="fa-solid fa-location-dot text-[#3264c8] text-base mb-2"></i>
+                        <span class="vertical-text text-xs text-gray-700">Allg. Ziele</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col mb-1">
+                    <button onclick="closeBettenOverview()" class="win-btn w-full h-12" title="Zurück zum Terminal">
+                        <i class="fa-solid fa-arrow-rotate-left text-[#3264c8] text-2xl"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Statusleiste -->
-        <div class="h-8 bg-[#3a3a3a] text-white flex items-center justify-between px-2 text-[11px] gap-2 select-none border-t border-[var(--win-light)]">
-            <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 text-white font-bold tracking-wide">ASB-915</div>
-            <div class="status-box bg-[#3a3a3a] border-gray-600 px-4 font-bold text-[#ffeb3b]">ABK-ABZ-SIM</div>
+        <div class="h-8 bg-[#3a3a3a] text-white flex items-center justify-between px-2 text-[11px] gap-2 select-none border-t border-[var(--win-light)] shrink-0">
+            <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 text-white font-bold tracking-wide">SDT</div>
+            <div class="status-box bg-[#3a3a3a] border-gray-600 px-4 font-bold text-[#ffeb3b]">NKTW/RTW-SIM</div>
             <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 gap-2 text-white"><i class="fa-solid fa-thumbs-up text-[#3296c8]"></i> Bereit</div>
             <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 text-white">Angemeldet</div>
             <div class="flex gap-1 items-center">
                 <div class="status-box bg-[#329632] text-white px-2">LTE</div>
-                <div id="badge-els" class="status-box bg-[#c83232] text-white px-2 animate-pulse" title="Verbindung zum Server">ELS</div>
+                <div id="badge-els" onclick="diagnoseConnection()" class="status-box bg-[#c83232] text-white px-2 animate-pulse cursor-pointer" title="Tippen für Verbindungsstatus">ELS</div>
                 <div class="status-box bg-[#c83232] text-white px-2">GPS</div>
                 <div class="status-box bg-[#329632] text-white px-2">EEP</div>
                 <div class="status-box bg-gray-500 text-white px-3">0</div>
@@ -502,6 +555,51 @@
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
 
+        // --- AUDIO EFFEKTE ---
+        const sndAlarm = new Audio('alarm.mp3');
+        sndAlarm.loop = true;
+        const sndClick = new Audio('mdt_klick.mp3');
+
+        // iOS Audio Unlock: Berechtigt Audiowiedergabe bei der ersten Touch-Interaktion
+        function unlockAudioOnInteraction() {
+            sndAlarm.play().then(() => {
+                sndAlarm.pause();
+                sndAlarm.currentTime = 0;
+            }).catch(() => {});
+
+            sndClick.play().then(() => {
+                sndClick.pause();
+                sndClick.currentTime = 0;
+            }).catch(() => {});
+
+            window.removeEventListener('click', unlockAudioOnInteraction);
+            window.removeEventListener('touchstart', unlockAudioOnInteraction);
+        }
+        window.addEventListener('click', unlockAudioOnInteraction);
+        window.addEventListener('touchstart', unlockAudioOnInteraction);
+
+        function playClickSound() {
+            try {
+                sndClick.currentTime = 0;
+                sndClick.play().catch(() => {});
+            } catch(e){}
+        }
+
+        function startAlarmSound() {
+            try {
+                sndAlarm.currentTime = 0;
+                sndAlarm.play().catch(() => {});
+            } catch(e){}
+        }
+
+        function stopAlarmSound() {
+            try {
+                sndAlarm.pause();
+                sndAlarm.currentTime = 0;
+            } catch(e){}
+        }
+
+        // --- RAUM LOGIK & WEBSOCKET ---
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('header-room-code').textContent = roomCode;
@@ -514,24 +612,54 @@
         ];
 
         let socket = null;
+        let lastConnectedUrl = '';
+        let isOnline = false;
         let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
 
         function setELSStatus(online) {
+            isOnline = online;
             const el = document.getElementById('badge-els');
             if (!el) return;
             if (online) {
-                el.className = 'status-box bg-[#329632] text-white px-2';
+                el.className = 'status-box bg-[#329632] text-white px-2 cursor-pointer';
+                el.title = 'ELS Online (Verbunden)';
             } else {
-                el.className = 'status-box bg-[#c83232] text-white px-2 animate-pulse';
+                el.className = 'status-box bg-[#c83232] text-white px-2 animate-pulse cursor-pointer';
+                el.title = 'ELS Offline (Tippen für Hilfe)';
+            }
+        }
+
+        function diagnoseConnection() {
+            if (isOnline) {
+                alert(`✅ ELS ist ONLINE!\nVerbunden mit: ${lastConnectedUrl}\nRaum: ${roomCode}`);
+            } else {
+                const currentHost = window.location.host;
+                let msg = `❌ ELS ist OFFLINE!\n\nAktueller Host: ${currentHost || 'unbekannt'}\nVerbindungsversuch an: ${lastConnectedUrl}\n\n`;
+                if (currentHost.includes('github.io')) {
+                    msg += `⚠️ WICHTIG: Du hast die Seite über GitHub Pages geöffnet!\nGitHub Pages kann keine WebSockets ausführen.\n\nBitte öffne deine Live-URL von Render.com!`;
+                } else {
+                    msg += `Tipp: Wenn Render im Ruhemodus war, dauert das Aufwachen ca. 30 Sekunden.`;
+                }
+                const customServer = prompt(msg + '\n\nFalls du einen alternativen Server eingeben willst:', localStorage.getItem('sim_custom_server') || '');
+                if (customServer !== null && customServer.trim() !== '') {
+                    localStorage.setItem('sim_custom_server', customServer.trim());
+                    connectSocket();
+                }
             }
         }
 
         function connectSocket() {
             try {
+                if (socket) {
+                    try { socket.close(); } catch(e){}
+                }
+
                 const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                // Falls lokal aufgerufen, den Render-Host verwenden, ansonsten den aktuellen Host
-                const host = window.location.host || 'sim-data-terminal.onrender.com';
-                socket = new WebSocket(`${proto}//${host}?room=${encodeURIComponent(roomCode)}`);
+                let host = localStorage.getItem('sim_custom_server') || window.location.host;
+                const wsUrl = `${proto}//${host}/?room=${encodeURIComponent(roomCode)}`;
+                lastConnectedUrl = wsUrl;
+
+                socket = new WebSocket(wsUrl);
 
                 socket.onopen = () => {
                     setELSStatus(true);
@@ -565,7 +693,6 @@
         }
         connectSocket();
 
-        // Beim Entsperren des iPads sofort Verbindung prüfen
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && (!socket || socket.readyState !== WebSocket.OPEN)) {
                 connectSocket();
@@ -601,6 +728,9 @@
                 const alarmModal = document.getElementById('alarm-modal');
                 alarmModal.classList.remove('hidden');
                 alarmModal.classList.add('flex');
+                
+                // Alarm-Sound in Endlosschleife starten
+                startAlarmSound();
                 switchTab('daten');
             } else if (t === 'REMOTE_CLEAR') {
                 confirmFinishAuftrag();
@@ -615,7 +745,7 @@
                     timestamp: now.toLocaleString('de-DE'),
                     bo: 'HOLLERGASSE 2-6///\n1150 WIEN\n: @ABZ : TEST',
                     code: '10D05 (Herzinfarkt / Vorerkrankung)',
-                    ftext: 'TESTEINSATZ ASB FREITEXT',
+                    ftext: 'TESTEINSATZ SIM FREITEXT',
                     patientName: 'Max Mustermann',
                     geschlecht: 'männlich',
                     gebDat: '24.07.1988',
@@ -628,9 +758,14 @@
             const alarmModal = document.getElementById('alarm-modal');
             alarmModal.classList.remove('hidden');
             alarmModal.classList.add('flex');
+            startAlarmSound();
         }
 
         function acceptAlarm() {
+            // Alarmton beenden
+            stopAlarmSound();
+            playClickSound();
+
             document.getElementById('alarm-modal').classList.add('hidden');
             document.getElementById('alarm-modal').classList.remove('flex');
 
@@ -671,6 +806,8 @@
         let selectedHospital = null;
 
         function handleWorkflowStep(step) {
+            playClickSound();
+
             const inputStatus = document.getElementById('input-status');
             const btnZumBo = document.getElementById('btn-zum-bo');
             const svgZumBo = document.getElementById('svg-zum-bo');
@@ -718,6 +855,8 @@
         }
 
         function switchTab(tabId) {
+            playClickSound();
+
             const btnDaten = document.getElementById('tab-daten-btn');
             const btnPatient = document.getElementById('tab-patient-btn');
             const textDaten = document.getElementById('tab-daten-text');
@@ -747,24 +886,28 @@
         }
 
         function openBettenOverview() {
+            playClickSound();
             document.getElementById('view-mdt').classList.add('hidden');
             document.getElementById('view-betten').classList.remove('hidden');
             document.getElementById('view-betten').classList.add('flex');
         }
 
         function closeBettenOverview() {
+            playClickSound();
             document.getElementById('view-betten').classList.add('hidden');
             document.getElementById('view-betten').classList.remove('flex');
             document.getElementById('view-mdt').classList.remove('hidden');
             switchTab('patient');
         }
 
-        function selectCategory(el) {
+        function selectCategory(el, catName) {
+            playClickSound();
             document.querySelectorAll('.category-row').forEach(r => r.classList.remove('selected'));
             el.classList.add('selected');
         }
 
         function requestBeds() {
+            playClickSound();
             const count = Math.floor(Math.random() * 4) + 1;
             const chosen = [...FANTASY_HOSPITALS].sort(() => 0.5 - Math.random()).slice(0, count).map(h => ({
                 ...h, beds: Math.floor(Math.random() * 8) + 1
@@ -777,6 +920,7 @@
                 row.className = 'hospital-row flex flex-row items-center px-2 py-[6px] border-b border-gray-200 cursor-pointer';
                 row.innerHTML = `<div class="w-20 font-bold text-sm text-gray-800">${h.beds}</div><div class="w-24 font-bold text-xs text-blue-900">${h.code}</div><div class="flex-1 font-semibold text-xs text-gray-900">${h.name}</div>`;
                 row.onclick = () => {
+                    playClickSound();
                     document.querySelectorAll('.hospital-row').forEach(r => r.classList.remove('selected'));
                     row.classList.add('selected');
                     selectedHospital = h;
@@ -784,10 +928,13 @@
                 container.appendChild(row);
                 if (i === 0) row.click();
             });
+            document.getElementById('hospital-count-text').textContent = `1 von ${chosen.length}`;
         }
 
         function confirmHospitalBooking() {
             if (!selectedHospital) return;
+            playClickSound();
+
             bookedHospital = selectedHospital;
             document.getElementById('input-p-ziel').value = `${bookedHospital.code} - ${bookedHospital.name}`;
             closeBettenOverview();
@@ -807,10 +954,20 @@
             }
         }
 
-        function openFinishModal() { document.getElementById('finish-modal').classList.remove('hidden'); document.getElementById('finish-modal').classList.add('flex'); }
-        function closeFinishModal() { document.getElementById('finish-modal').classList.add('hidden'); document.getElementById('finish-modal').classList.remove('flex'); }
+        function openFinishModal() { 
+            playClickSound();
+            document.getElementById('finish-modal').classList.remove('hidden'); 
+            document.getElementById('finish-modal').classList.add('flex'); 
+        }
+
+        function closeFinishModal() { 
+            playClickSound();
+            document.getElementById('finish-modal').classList.add('hidden'); 
+            document.getElementById('finish-modal').classList.remove('flex'); 
+        }
 
         function confirmFinishAuftrag() {
+            playClickSound();
             closeFinishModal();
             document.querySelectorAll('input, textarea').forEach(i => i.value = '');
             document.getElementById('patient-tab-title').textContent = '';
