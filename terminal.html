@@ -27,7 +27,6 @@
             --title-blue-end: #1084d0;
         }
 
-        /* Dezenter Abstand zu den iPad-Statusleisten */
         body {
             background-color: #000000;
             font-family: Tahoma, "Segoe UI", Arial, sans-serif;
@@ -578,7 +577,8 @@
         window.addEventListener('click', unlockAudioOnInteraction);
         window.addEventListener('touchstart', unlockAudioOnInteraction);
 
-        function playClickSound() {
+        // Klicksound wird ausschließlich bei Statusänderungen aufgerufen
+        function playStatusClickSound() {
             try {
                 sndClick.currentTime = 0;
                 sndClick.play().catch(() => {});
@@ -729,7 +729,6 @@
                 alarmModal.classList.remove('hidden');
                 alarmModal.classList.add('flex');
                 
-                // Alarm-Sound in Endlosschleife starten
                 startAlarmSound();
                 switchTab('daten');
             } else if (t === 'REMOTE_CLEAR') {
@@ -762,9 +761,7 @@
         }
 
         function acceptAlarm() {
-            // Alarmton beenden
             stopAlarmSound();
-            playClickSound();
 
             document.getElementById('alarm-modal').classList.add('hidden');
             document.getElementById('alarm-modal').classList.remove('flex');
@@ -806,7 +803,8 @@
         let selectedHospital = null;
 
         function handleWorkflowStep(step) {
-            playClickSound();
+            // Nur bei Statuswechsel Klicksound abspielen
+            playStatusClickSound();
 
             const inputStatus = document.getElementById('input-status');
             const btnZumBo = document.getElementById('btn-zum-bo');
@@ -855,8 +853,6 @@
         }
 
         function switchTab(tabId) {
-            playClickSound();
-
             const btnDaten = document.getElementById('tab-daten-btn');
             const btnPatient = document.getElementById('tab-patient-btn');
             const textDaten = document.getElementById('tab-daten-text');
@@ -886,14 +882,12 @@
         }
 
         function openBettenOverview() {
-            playClickSound();
             document.getElementById('view-mdt').classList.add('hidden');
             document.getElementById('view-betten').classList.remove('hidden');
             document.getElementById('view-betten').classList.add('flex');
         }
 
         function closeBettenOverview() {
-            playClickSound();
             document.getElementById('view-betten').classList.add('hidden');
             document.getElementById('view-betten').classList.remove('flex');
             document.getElementById('view-mdt').classList.remove('hidden');
@@ -901,13 +895,11 @@
         }
 
         function selectCategory(el, catName) {
-            playClickSound();
             document.querySelectorAll('.category-row').forEach(r => r.classList.remove('selected'));
             el.classList.add('selected');
         }
 
         function requestBeds() {
-            playClickSound();
             const count = Math.floor(Math.random() * 4) + 1;
             const chosen = [...FANTASY_HOSPITALS].sort(() => 0.5 - Math.random()).slice(0, count).map(h => ({
                 ...h, beds: Math.floor(Math.random() * 8) + 1
@@ -920,7 +912,6 @@
                 row.className = 'hospital-row flex flex-row items-center px-2 py-[6px] border-b border-gray-200 cursor-pointer';
                 row.innerHTML = `<div class="w-20 font-bold text-sm text-gray-800">${h.beds}</div><div class="w-24 font-bold text-xs text-blue-900">${h.code}</div><div class="flex-1 font-semibold text-xs text-gray-900">${h.name}</div>`;
                 row.onclick = () => {
-                    playClickSound();
                     document.querySelectorAll('.hospital-row').forEach(r => r.classList.remove('selected'));
                     row.classList.add('selected');
                     selectedHospital = h;
@@ -933,7 +924,6 @@
 
         function confirmHospitalBooking() {
             if (!selectedHospital) return;
-            playClickSound();
 
             bookedHospital = selectedHospital;
             document.getElementById('input-p-ziel').value = `${bookedHospital.code} - ${bookedHospital.name}`;
@@ -955,19 +945,16 @@
         }
 
         function openFinishModal() { 
-            playClickSound();
             document.getElementById('finish-modal').classList.remove('hidden'); 
             document.getElementById('finish-modal').classList.add('flex'); 
         }
 
         function closeFinishModal() { 
-            playClickSound();
             document.getElementById('finish-modal').classList.add('hidden'); 
             document.getElementById('finish-modal').classList.remove('flex'); 
         }
 
         function confirmFinishAuftrag() {
-            playClickSound();
             closeFinishModal();
             document.querySelectorAll('input, textarea').forEach(i => i.value = '');
             document.getElementById('patient-tab-title').textContent = '';
