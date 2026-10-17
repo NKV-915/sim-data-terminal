@@ -2,8 +2,16 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sim Data Terminal</title>
+
+    <!-- iPadOS / iOS PWA Einstellungen -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sim Terminal">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000080'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif'>🚑</text></svg>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -29,7 +37,9 @@
             min-height: 100vh;
             margin: 0;
             user-select: none;
-            overflow-x: hidden;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow: hidden;
         }
 
         .win-raised {
@@ -62,7 +72,7 @@
             align-items: center;
             outline: none;
             cursor: pointer;
-            transition: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .win-btn:active:not(:disabled) {
@@ -162,7 +172,7 @@
 
     <div class="win-raised w-full max-w-[1140px] h-[750px] flex flex-col relative">
         
-        <!-- Windows Titelleiste (ohne Leitstellen-Knopf) -->
+        <!-- Titelleiste (Ohne Leitstellen-Knopf) -->
         <div class="h-8 bg-gradient-to-r from-[var(--title-blue-start)] to-[var(--title-blue-end)] flex items-center justify-between px-2 m-[2px]">
             <div class="flex items-center text-white font-bold text-[12px] tracking-wide ml-1">
                 <i class="fa-solid fa-desktop mr-2 text-[12px]"></i>
@@ -586,7 +596,12 @@
     </div>
 
     <script>
-        // 1. RAUM-LOGIK AUS DER URL AUSLESEN
+        // PWA Service Worker registrieren
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        // 1. Raum-Logik aus URL auslesen
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('header-room-code').textContent = roomCode;
@@ -611,42 +626,53 @@
             { code: '@DKW', name: 'Donau-Klinik West' }
         ];
 
-        // 2. NETZWERK-SYNCHRONISATION PRO RAUM (BroadcastChannel & WebSocket)
-        const broadcastChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
         let socket = null;
+        let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
 
-        function initWebSocket() {
+        // WebSocket-Aufbau mit Reconnect-Schutz für iPadOS
+        function connectSocket() {
             try {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const socketUrl = `${protocol}//${window.location.host}?room=${encodeURIComponent(roomCode)}`;
-                socket = new WebSocket(socketUrl);
+                const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                socket = new WebSocket(`${proto}//${window.location.host}?room=${encodeURIComponent(roomCode)}`);
 
-                socket.onopen = () => console.log('⚡ Verbunden mit Raum ' + roomCode);
-                socket.onmessage = (event) => {
+                socket.onmessage = async (event) => {
+                    let raw = event.data;
+                    // Löst das Safari-spezifische Blob-Problem
+                    if (raw instanceof Blob) {
+                        raw = await raw.text();
+                    }
                     try {
-                        const payload = JSON.parse(event.data);
-                        handleIncomingTransmission(payload);
+                        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                        handleIncomingTransmission(parsed);
                     } catch (e) {
-                        console.error('WebSocket parse error:', e);
+                        console.error('Fehler beim Parsen:', e);
                     }
                 };
-                socket.onclose = () => setTimeout(initWebSocket, 4000);
-            } catch (e) {
-                console.log('Lokal-Modus aktiv');
+
+                socket.onclose = () => {
+                    setTimeout(connectSocket, 2500);
+                };
+            } catch(e) {
+                setTimeout(connectSocket, 2500);
             }
         }
-        initWebSocket();
+        connectSocket();
 
-        if (broadcastChannel) {
-            broadcastChannel.onmessage = (event) => {
-                if (event.data) handleIncomingTransmission(event.data);
-            };
+        // Beim Aufwecken des iPads sofort wieder verbinden
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && (!socket || socket.readyState !== WebSocket.OPEN)) {
+                connectSocket();
+            }
+        });
+
+        if (bc) {
+            bc.onmessage = (e) => handleIncomingTransmission(e.data);
         }
 
         let currentMissionPayload = null;
 
-        // Normalisiert alle eingehenden Formate
         function handleIncomingTransmission(msg) {
+            if (!msg) return;
             if (msg.type === 'ALARM' || msg.type === 'DISPATCH_ALARM') {
                 const d = msg.data || msg;
                 currentMissionPayload = {
@@ -664,7 +690,6 @@
                 };
 
                 document.getElementById('alarm-r-number').textContent = currentMissionPayload.rNummer;
-                
                 const alarmModal = document.getElementById('alarm-modal');
                 alarmModal.classList.remove('hidden');
                 alarmModal.classList.add('flex');
@@ -904,6 +929,7 @@
 
             closeBettenOverview();
 
+            // Falls bereits unterwegs oder am alten Ziel, zurückstufen auf "Zum Abgabeort"
             if (currentStep >= 3) {
                 currentStep = 3;
                 document.getElementById('input-status').value = "Zum Abgabeort";

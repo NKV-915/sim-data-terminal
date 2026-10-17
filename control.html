@@ -2,8 +2,14 @@
 <html lang="de" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Leitstellen-Steuerung | Dispatch Control</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dispatch CAD">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,13 +50,12 @@
                 linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            touch-action: manipulation;
         }
 
-        /* Taktischer Glow-Effekt */
         .glow-red { box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.45); }
         .glow-blue { box-shadow: 0 0 20px -3px rgba(56, 189, 248, 0.35); }
         
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -110,7 +115,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">9 VORLAGEN</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">8 VORLAGEN</span>
                 </div>
                 <span class="text-[11px] text-slate-400">Klick lädt & berechnet Daten neu</span>
             </div>
@@ -331,19 +336,18 @@
     </footer>
 
     <script>
-        // 1. RAUM-INITIALISIERUNG AUS URL ODER DEFAULT
+        // 1. Raum-Logik aus URL
         const urlParams = new URLSearchParams(window.location.search);
         let roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('input-room').value = roomCode;
         document.getElementById('btn-room-tag').innerText = roomCode;
 
-        // Netzwerk & Echtzeit
         let ws = null;
-        let bc = new BroadcastChannel('sim_data_' + roomCode);
+        let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
 
         function connectWebSocket() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${proto}//${location.host}?room=${roomCode}`);
+            ws = new WebSocket(`${proto}//${location.host}?room=${encodeURIComponent(roomCode)}`);
 
             ws.onopen = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
@@ -362,12 +366,19 @@
         }
         connectWebSocket();
 
+        // Beim Aufwecken des iPads sofort wieder verbinden
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && (!ws || ws.readyState !== WebSocket.OPEN)) {
+                connectWebSocket();
+            }
+        });
+
         function changeRoom() {
             const newRoom = document.getElementById('input-room').value.trim().toUpperCase() || 'SIM1';
             window.location.search = `?room=${encodeURIComponent(newRoom)}`;
         }
 
-        // 2. LIVE UHRZEIT
+        // 2. Live Uhrzeit
         function updateClock() {
             const now = new Date();
             document.getElementById('clock-time').innerText = now.toLocaleTimeString('de-DE');
@@ -376,7 +387,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 3. GENERATOREN (ÖSTERREICHISCHE SV-NUMMER, R- & T-NUMMER)
+        // 3. Generatoren (Österreichische SV-Nummer, R- & T-Nummer)
         function generateRandom(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
         function generateSV(gebDatum) {
@@ -403,7 +414,7 @@
             document.getElementById('edit_sv').value = generateSV(geb);
         }
 
-        // 4. SZENARIEN-DATENBANK (WIEN REALISTISCH)
+        // 4. Szenarien-Datenbank (Wien Realistisch)
         const scenarios = {
             'ACS': {
                 code: '10D05 (Herzinfarkt / Angina Pectoris)',
@@ -485,29 +496,42 @@
             recalcSV();
         }
 
-        // 5. SYNTHESIZER DISPATCH SOUND (Keine externen MP3-Dateien nötig)
+        // 5. Audio-Entsperrung & Melder-Ton für iOS Safari
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+        window.addEventListener('touchstart', initAudio, { once: true });
+        window.addEventListener('click', initAudio, { once: true });
+
         function playAlertTone() {
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const now = ctx.currentTime;
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
                 
-                // 3-Ton Pager / Melder Sequenz
+                // 3-Ton Melder Sequenz
                 [880, 1174, 1567].forEach((freq, idx) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now + idx * 0.12);
-                    gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.25, now + idx * 0.12);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.18);
                     osc.connect(gain);
-                    gain.connect(ctx.destination);
+                    gain.connect(audioCtx.destination);
                     osc.start(now + idx * 0.12);
                     osc.stop(now + idx * 0.12 + 0.2);
                 });
             } catch(e){}
         }
 
-        // 6. ALARMIERUNG IN RAUM SENDEN
+        // 6. Alarmierung senden
         let dispatchCount = 0;
 
         function dispatchMission() {
@@ -530,16 +554,22 @@
 
             const jsonStr = JSON.stringify(payload);
 
-            // Senden via WebSocket
+            // WebSocket Übertragung
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(jsonStr);
+            } else {
+                connectWebSocket();
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) ws.send(jsonStr);
+                }, 400);
             }
-            // Fallback via BroadcastChannel
-            bc.postMessage(payload);
+
+            // BroadcastChannel für lokale Tabs
+            if (bc) bc.postMessage(payload);
 
             playAlertTone();
 
-            // Logeintrag hinzufügen
+            // Protokollzeile schreiben
             dispatchCount++;
             document.getElementById('log-counter').innerText = `${dispatchCount} Einsätze übertragen`;
 
@@ -560,7 +590,7 @@
             logBox.prepend(logRow);
         }
 
-        // Initiales Szenario beim Start laden
+        // Initiale Vorbelegung
         selectScenario('ACS');
     </script>
 </body>
