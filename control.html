@@ -1,148 +1,567 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitstellen-Steuerung</title>
+    <title>Leitstellen-Steuerung | Dispatch Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-gray-100 h-screen p-4 flex flex-col font-sans">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        tech: ['Chakra Petch', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dispatch: {
+                            base: '#080c14',
+                            card: '#0f172a',
+                            panel: '#151f32',
+                            border: '#1e293b',
+                            red: '#ef4444',
+                            orange: '#f97316',
+                            yellow: '#eab308',
+                            blue: '#0284c7',
+                            neon: '#38bdf8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #080c14;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(2, 132, 199, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(239, 68, 68, 0.06) 0%, transparent 40%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+        }
 
-    <!-- Header mit Raum-Anzeige -->
-    <div class="bg-gray-800 border-b-2 border-red-500 p-4 rounded-t flex justify-between items-center shadow-lg">
-        <h1 class="text-2xl font-bold text-red-500 flex items-center gap-2">
-            📡 DISPATCH KONTROLLZENTRUM
-        </h1>
-        <div class="bg-gray-900 px-4 py-1 rounded text-sm text-gray-400 border border-gray-700">
-            RAUM: <span id="ui-room" class="font-bold text-yellow-400 text-lg ml-1">...</span>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 flex gap-4 mt-4 overflow-hidden">
+        /* Taktischer Glow-Effekt */
+        .glow-red { box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.45); }
+        .glow-blue { box-shadow: 0 0 20px -3px rgba(56, 189, 248, 0.35); }
         
-        <!-- Left: Notfallbilder -->
-        <div class="w-1/2 flex flex-col gap-2">
-            <h2 class="text-gray-400 font-bold mb-2">SCHNELL-ALARMIERUNG (SZENARIEN)</h2>
-            <div class="grid grid-cols-2 gap-2 flex-1 auto-rows-max overflow-y-auto pr-2">
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('ACS')">
-                    <div class="text-red-400 font-bold">Thoraxschmerz / ACS</div>
-                    <div class="text-xs text-gray-400">10D05 | Verdacht auf Herzinfarkt</div>
-                </button>
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('APOPLEX')">
-                    <div class="text-orange-400 font-bold">Apoplex / Schlaganfall</div>
-                    <div class="text-xs text-gray-400">28C01 | Neurologisches Defizit</div>
-                </button>
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('ATEMNOT')">
-                    <div class="text-blue-400 font-bold">Atemnot (Schwer)</div>
-                    <div class="text-xs text-gray-400">06D02 | Dyspnoe, COPD, Asthma</div>
-                </button>
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('KRAMPF')">
-                    <div class="text-purple-400 font-bold">Krampfanfall</div>
-                    <div class="text-xs text-gray-400">12D02 | Status Epilepticus</div>
-                </button>
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('TRAUMA')">
-                    <div class="text-yellow-400 font-bold">Verkehrsunfall</div>
-                    <div class="text-xs text-gray-400">29D02 | PKW vs. Fußgänger</div>
-                </button>
-                <button class="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left transition" onclick="loadScenario('STURZ')">
-                    <div class="text-yellow-400 font-bold">Sturz aus Höhe</div>
-                    <div class="text-xs text-gray-400">17D03 | >3 Meter, Polytrauma</div>
-                </button>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @keyframes radar-pulse {
+            0% { transform: scale(0.95); opacity: 0.9; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.9; }
+        }
+        .pulse-dot { animation: radar-pulse 2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="text-slate-100 h-screen flex flex-col overflow-hidden font-sans select-none">
+
+    <!-- OBERE LEITSTELLEN-STATUSLEISTE -->
+    <header class="h-14 bg-dispatch-card/90 backdrop-blur border-b border-slate-800 px-5 flex items-center justify-between shrink-0 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="relative flex items-center justify-center w-8 h-8 rounded-lg bg-red-950/60 border border-red-500/40">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 pulse-dot"></span>
+            </div>
+            <div>
+                <h1 class="font-tech text-lg font-bold tracking-wider text-slate-100 flex items-center gap-2">
+                    DISPATCH CONTROL <span class="text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-500/30 text-sky-400 font-mono">CAD-915</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 tracking-wider">EINSATZLEITUNG & SIMULATIONS-STEUERUNG</p>
             </div>
         </div>
 
-        <!-- Right: Vorschau & Senden -->
-        <div class="w-1/2 flex flex-col bg-gray-800 rounded border border-gray-700 p-4">
-            <h2 class="text-gray-400 font-bold mb-4">DATEN-VORSCHAU</h2>
-            
-            <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div><label class="text-gray-500 block text-xs">Auftrags-Nr (R)</label><input id="inp_r_nr" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white" readonly></div>
-                <div><label class="text-gray-500 block text-xs">Transport-Nr (T)</label><input id="inp_t_nr" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white" readonly></div>
-                
-                <div class="col-span-2"><label class="text-gray-500 block text-xs">Adresse (BO)</label><input id="inp_bo" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
-                
-                <div><label class="text-gray-500 block text-xs">AMPDS Code</label><input id="inp_code" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
-                <div><label class="text-gray-500 block text-xs">Patientenname</label><input id="inp_name" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
-                
-                <div><label class="text-gray-500 block text-xs">Geburtsdatum</label><input id="inp_geb" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white"></div>
-                <div><label class="text-gray-500 block text-xs">SV-Nummer</label><input id="inp_sv" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white font-mono text-yellow-400"></div>
-                
-                <div class="col-span-2"><label class="text-gray-500 block text-xs">Freitext (FTEXT)</label><textarea id="inp_ftext" class="w-full bg-gray-900 p-2 rounded border border-gray-700 text-white h-20 resize-none"></textarea></div>
+        <div class="flex items-center gap-4">
+            <!-- Raum-Wähler & Status -->
+            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-inner">
+                <span class="text-[11px] font-mono font-semibold text-slate-400">RAUM:</span>
+                <input id="input-room" class="bg-black/60 border border-slate-600 rounded px-2 py-0.5 font-mono text-sm font-bold text-yellow-400 w-24 text-center uppercase tracking-wider focus:border-yellow-400 focus:outline-none" value="SIM1">
+                <button onclick="changeRoom()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">Setzen</button>
             </div>
 
-            <button onclick="sendDispatch()" class="mt-auto bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded text-xl shadow-[0_0_15px_rgba(220,38,38,0.5)] transition flex items-center justify-center gap-3">
-                🚨 ALARMIERUNG IN DEN RAUM SENDEN
+            <!-- Verbindungstatus -->
+            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg">
+                <span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span id="conn-text" class="text-xs font-mono font-medium text-emerald-400">ONLINE</span>
+            </div>
+
+            <!-- Live Uhrzeit -->
+            <div class="font-mono text-right pl-2 border-l border-slate-800">
+                <div id="clock-time" class="text-base font-bold text-slate-100 leading-none">12:00:00</div>
+                <div id="clock-date" class="text-[10px] text-slate-400 leading-none mt-1">01.01.2026</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HAUPTBEREICH: SPLIT-LAYOUT -->
+    <main class="flex-1 flex gap-4 p-4 overflow-hidden">
+
+        <!-- LINKE SPALTE: AMPDS SCHNELL-SZENARIEN (52%) -->
+        <section class="w-[52%] flex flex-col gap-2.5 overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">9 VORLAGEN</span>
+                </div>
+                <span class="text-[11px] text-slate-400">Klick lädt & berechnet Daten neu</span>
+            </div>
+
+            <!-- Szenarien Grid -->
+            <div class="flex-1 grid grid-cols-2 gap-2.5 overflow-y-auto pr-1">
+                <!-- ACS -->
+                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
+                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Vernichtungsschmerz retrosternal, Ausstrahlung li. Arm, kaltschweißig.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1030 Wien</span><span>65 J. • M</span>
+                    </div>
+                </button>
+
+                <!-- APOPLEX -->
+                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
+                            <span class="text-[10px] font-mono text-slate-400">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">FAST positiv: Fazialisparese, Armheberschwäche, Aphasie seit 25 Min.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1150 Wien</span><span>74 J. • W</span>
+                    </div>
+                </button>
+
+                <!-- ATEMNOT -->
+                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
+                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Zyanose, Stridor, schwere COPD/Asthma-Exazerbation, SpO2 78%.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1020 Wien</span><span>58 J. • M</span>
+                    </div>
+                </button>
+
+                <!-- KRAMPF -->
+                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
+                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Tonisch-klonische Serie ohne Wiedererlangen des Bewusstseins. Zungenbiss.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1070 Wien</span><span>36 J. • M</span>
+                    </div>
+                </button>
+
+                <!-- TRAUMA -->
+                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
+                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / PKW vs Fuß</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Fußgänger von PKW erfasst, über Motorhaube geschleudert. SHT II.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1100 Wien</span><span>24 J. • W</span>
+                    </div>
+                </button>
+
+                <!-- STURZ AUS HÖHE -->
+                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
+                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Gerüststurz Baustelle. Verdacht auf Wirbelsäulen- und Beckentrauma.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1210 Wien</span><span>42 J. • M</span>
+                    </div>
+                </button>
+
+                <!-- ANAPHYLAXIE -->
+                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
+                            <span class="text-[10px] font-mono text-slate-400">ECHO</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
+                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Wespenstich Halsbereich. Quincke-Ödem, inspiratorischer Stridor, RR 70/40.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1140 Wien</span><span>31 J. • W</span>
+                    </div>
+                </button>
+
+                <!-- REANIMATION -->
+                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition-all duration-150 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2 py-0.5 rounded animate-pulse">09E01</span>
+                            <span class="text-[10px] font-mono text-red-400 font-bold">REANIMATION</span>
+                        </div>
+                        <div class="font-tech text-sm font-bold text-red-200 group-hover:text-white">Herz-Kreislauf-Stillstand</div>
+                        <div class="text-[11px] text-slate-300 line-clamp-2 mt-1">Plötzlicher Kollaps, keine Atmung, TCPR (Telefonanleitung) läuft.</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span>1010 Wien</span><span>69 J. • M</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- RECHTE SPALTE: AKTIVER AUFTRAG & FEINJUSTIERUNG (48%) -->
+        <section class="w-[48%] flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
+                    <h2 class="font-tech text-sm font-bold tracking-wider text-slate-100">AUFTRAGS-EDITOR</h2>
+                </div>
+                <button onclick="randomizeMissionNumbers()" class="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1">
+                    <span>↻ R/T Neu generieren</span>
+                </button>
+            </div>
+
+            <!-- Formularfelder -->
+            <div class="flex-1 overflow-y-auto pr-1 py-3 flex flex-col gap-3 text-xs">
+                <!-- R & T Nummern -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Auftrag (EN / R-NR)</label>
+                        <input id="edit_rnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-red-400 text-sm focus:border-red-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Transport (T-NR)</label>
+                        <input id="edit_tnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-200 text-sm focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- AMPDS & Patient -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">AMPDS Code & Text</label>
+                        <input id="edit_code" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-yellow-400 focus:border-yellow-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Patientenname</label>
+                        <input id="edit_name" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-semibold text-slate-100 focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- SV-Nummer, Geburtsdatum, Geschlecht -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geburtsdatum</label>
+                        <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer (10-stellig)</label>
+                        <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geschlecht</label>
+                        <select id="edit_geschl" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-medium text-slate-200 focus:border-sky-500 focus:outline-none">
+                            <option value="männlich">männlich</option>
+                            <option value="weiblich">weiblich</option>
+                            <option value="divers">divers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Berufungsort (BO) -->
+                <div>
+                    <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Berufungsort (BO / Einsatzadresse)</label>
+                    <textarea id="edit_bo" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
+                </div>
+
+                <!-- Freitext (FTEXT) -->
+                <div>
+                    <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Einsatz-Freitext (FTEXT)</label>
+                    <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Alarm Auslöser Button -->
+            <button onclick="dispatchMission()" class="mt-2 w-full py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.99] font-tech font-bold text-base tracking-widest text-white glow-red flex items-center justify-center gap-3 transition-all">
+                <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span>🚨 ALARMIERUNG JETZT SENDEN (<span id="btn-room-tag">SIM1</span>)</span>
             </button>
+        </section>
+
+    </main>
+
+    <!-- UNTERE HISTORIE / LOG-LEISTE -->
+    <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-slate-800 pb-1">
+            <span>LETZTE DISPATCH-PROTOKOLLE</span>
+            <span id="log-counter">0 Einsätze übertragen</span>
         </div>
-    </div>
+        <div id="dispatch-log" class="flex-1 overflow-y-auto text-[11px] font-mono space-y-1 py-1">
+            <div class="text-slate-400 italic">Noch keine Alarmierung in dieser Sitzung ausgelöst.</div>
+        </div>
+    </footer>
 
     <script>
-        // RAUM-LOGIK AUSLESEN
+        // 1. RAUM-INITIALISIERUNG AUS URL ODER DEFAULT
         const urlParams = new URLSearchParams(window.location.search);
-        const roomCode = urlParams.get('room') || 'SIM1';
-        document.getElementById('ui-room').innerText = roomCode;
+        let roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
+        document.getElementById('input-room').value = roomCode;
+        document.getElementById('btn-room-tag').innerText = roomCode;
 
-        // Netzwerk-Setup (Raum im WS-Pfad mitgeben)
-        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let ws = new WebSocket(`${protocol}//${location.host}?room=${roomCode}`);
-        const bc = new BroadcastChannel('sim_data_' + roomCode);
+        // Netzwerk & Echtzeit
+        let ws = null;
+        let bc = new BroadcastChannel('sim_data_' + roomCode);
 
-        // Szenarien Datenbank
-        const scenarios = {
-            'ACS': { code: '10D05', ftext: 'Notruf durch Ehefrau. Patient klagt über starke Brustschmerzen, ausstrahlend in linken Arm. Kaltschweißig.', name: 'Mustermann, Franz', geb: '12.05.1965', geschlecht: 'männlich', bo: 'Hauptstraße 15/3\n1030 Wien\nTür-Code: 1234' },
-            'APOPLEX': { code: '28C01', ftext: 'Plötzliche Sprachstörung und halbseitige Lähmung rechts. Begann vor ca. 30 Minuten. Patient ist wach.', name: 'Huber, Maria', geb: '23.08.1952', geschlecht: 'weiblich', bo: 'Ringstraße 1/14\n1010 Wien\nLift im Haus' },
-            'ATEMNOT': { code: '06D02', ftext: 'Schwere Atemnot, zyanotisch. Bekanntes schweres Asthma. Sprechen kaum noch möglich.', name: 'Bauer, Stefan', geb: '09.11.1988', geschlecht: 'männlich', bo: 'Praterstern 3\n1020 Wien\nBeim Bahnhofseingang' },
-            'KRAMPF': { code: '12D02', ftext: 'Status Epilepticus auf offener Straße. Krampfte bereits 3x hintereinander. Blutet aus dem Mund.', name: 'Unbekannt, Männlich', geb: '01.01.1990', geschlecht: 'männlich', bo: 'Mariahilfer Straße 50\n1070 Wien\nVor dem Schuhgeschäft' },
-            'TRAUMA': { code: '29D02', ftext: 'Verkehrsunfall PKW gegen Fußgänger. Patient liegt am Boden, nicht ansprechbar. Starke Blutung am Kopf.', name: 'Gruber, Anna', geb: '17.03.2001', geschlecht: 'weiblich', bo: 'Gürtel / Burggasse\n1150 Wien\nKreuzungsbereich' },
-            'STURZ': { code: '17D03', ftext: 'Bauarbeiter aus ca. 4 Metern Höhe vom Gerüst gestürzt. Klagt über starke Rückenschmerzen, Beine taub.', name: 'Wagner, Thomas', geb: '30.06.1979', geschlecht: 'männlich', bo: 'Baustelle Nordbahnhof\n1020 Wien\nZufahrt über Tor 2' }
-        };
+        function connectWebSocket() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${proto}//${location.host}?room=${roomCode}`);
 
-        function generateId(prefix) { return prefix + Math.floor(Math.random() * 900000 + 100000); }
-
-        function generateSV(gebDatum) {
-            const parts = gebDatum.split('.');
-            const gebCode = parts[0] + parts[1] + parts[2].substring(2); // TTMMJJ
-            const random4 = Math.floor(1000 + Math.random() * 9000); // 4-stellige Nummer
-            return `${random4} ${gebCode}`;
-        }
-
-        let currentPayload = null;
-
-        function loadScenario(type) {
-            const s = scenarios[type];
-            const geb = s.geb;
-            const sv = generateSV(geb);
-            
-            currentPayload = {
-                type: 'ALARM',
-                r_nr: generateId('R'), t_nr: generateId('T'),
-                bo: s.bo, code: s.code, ftext: s.ftext,
-                name: s.name, geb: geb, sv: sv, geschlecht: s.geschlecht,
-                timestamp: new Date().toLocaleString('de-DE')
+            ws.onopen = () => {
+                document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
+                document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-emerald-400';
+                document.getElementById('conn-text').innerText = 'ONLINE';
             };
 
-            document.getElementById('inp_r_nr').value = currentPayload.r_nr;
-            document.getElementById('inp_t_nr').value = currentPayload.t_nr;
-            document.getElementById('inp_bo').value = currentPayload.bo;
-            document.getElementById('inp_code').value = currentPayload.code;
-            document.getElementById('inp_name').value = currentPayload.name;
-            document.getElementById('inp_geb').value = currentPayload.geb;
-            document.getElementById('inp_sv').value = currentPayload.sv;
-            document.getElementById('inp_ftext').value = currentPayload.ftext;
+            ws.onclose = () => {
+                document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+                document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-amber-400';
+                document.getElementById('conn-text').innerText = 'OFFLINE (BC)';
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = () => ws.close();
+        }
+        connectWebSocket();
+
+        function changeRoom() {
+            const newRoom = document.getElementById('input-room').value.trim().toUpperCase() || 'SIM1';
+            window.location.search = `?room=${encodeURIComponent(newRoom)}`;
         }
 
-        function sendDispatch() {
-            if(!currentPayload) return alert('Bitte zuerst ein Szenario auswählen!');
-            const msg = JSON.stringify(currentPayload);
-            if(ws.readyState === WebSocket.OPEN) ws.send(msg);
-            bc.postMessage(currentPayload); // Fallback für lokales Training in 2 Tabs
-            
-            alert('Alarmierung erfolgreich in den Raum ' + roomCode + ' gesendet!');
+        // 2. LIVE UHRZEIT
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock-time').innerText = now.toLocaleTimeString('de-DE');
+            document.getElementById('clock-date').innerText = now.toLocaleDateString('de-DE');
         }
-        
-        // Initial ein leeres Laden
-        loadScenario('ACS');
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 3. GENERATOREN (ÖSTERREICHISCHE SV-NUMMER, R- & T-NUMMER)
+        function generateRandom(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function generateSV(gebDatum) {
+            try {
+                const parts = gebDatum.split('.');
+                const tt = parts[0].padStart(2, '0');
+                const mm = parts[1].padStart(2, '0');
+                const jj = parts[2].substring(2, 4);
+                const random4 = generateRandom(1000, 9999);
+                return `${random4} ${tt}${mm}${jj}`;
+            } catch(e) {
+                return '1234 010190';
+            }
+        }
+
+        function randomizeMissionNumbers() {
+            const yr = new Date().getFullYear().toString().substring(2);
+            document.getElementById('edit_rnr').value = `R${yr}${generateRandom(100000, 999999)}`;
+            document.getElementById('edit_tnr').value = `T${yr}${generateRandom(100000, 999999)}`;
+        }
+
+        function recalcSV() {
+            const geb = document.getElementById('edit_geb').value;
+            document.getElementById('edit_sv').value = generateSV(geb);
+        }
+
+        // 4. SZENARIEN-DATENBANK (WIEN REALISTISCH)
+        const scenarios = {
+            'ACS': {
+                code: '10D05 (Herzinfarkt / Angina Pectoris)',
+                name: 'Bauer, Franz',
+                geb: '12.05.1961',
+                geschlecht: 'männlich',
+                bo: 'HOLLERGASSE 2-6 / Stiege 3 / Tür 12\n1150 WIEN\n: @ABZ : CODE #1244',
+                ftext: 'TESTEINSATZ ASB: Kardiologische Vorerkrankung. Patient klagt über akuten retrosternalen Druck, Dyspnoe und Kaltschweißigkeit.'
+            },
+            'APOPLEX': {
+                code: '28C01 (Apoplex / CVI - Akutes Defizit)',
+                name: 'Kowalski, Maria',
+                geb: '23.08.1952',
+                geschlecht: 'weiblich',
+                bo: 'MARIAHILFER STRASSE 142 / Stiege 1 / Tür 20\n1070 WIEN\n: @ABZ : LIFT VORHANDEN',
+                ftext: 'FAST-Test positiv: Hängender Mundwinkel rechts, Sprachstörung akut seit 25 Minuten aufgetreten. Patientin wach.'
+            },
+            'ATEMNOT': {
+                code: '06D02 (Schwere Atemnot / COPD)',
+                name: 'Gruber, Johann',
+                geb: '14.11.1968',
+                geschlecht: 'männlich',
+                bo: 'ENGELMANNSTRASSE 18 / Tür 5\n1160 WIEN\n: @ABZ : 1. STOCK RECHTS',
+                ftext: 'Zunehmende Atemnot seit dem Morgen. Bekanntes schweres Asthma und COPD. Patient sitzt aufrecht, Zyanose sichtbar.'
+            },
+            'KRAMPF': {
+                code: '12D02 (Krampfanfall / Status)',
+                name: 'Eder, Lukas',
+                geb: '05.02.1995',
+                geschlecht: 'männlich',
+                bo: 'PRATERSTERN 1 / BAHNHOFSHALLE\n1020 WIEN\n: @ABZ : BEIM INFOSCHALTER',
+                ftext: 'Generalisierter tonisch-klonischer Krampfanfall auf offener Straße. Mehrere Anfälle hintereinander, blutet aus dem Mund.'
+            },
+            'TRAUMA': {
+                code: '29D02 (Verkehrsunfall / Fußgänger)',
+                name: 'Novak, Sophie',
+                geb: '19.04.2002',
+                geschlecht: 'weiblich',
+                bo: 'WIEDNER GÜRTEL / PRINZ-EUGEN-STRASSE\n1040 WIEN\n: @ABZ : KREUZUNGSBEREICH',
+                ftext: 'Fußgängerin von PKW erfasst. Patientin somnolent am Straßenrand. Verdacht auf Schädel-Hirn-Trauma und Femurfraktur.'
+            },
+            'STURZ': {
+                code: '17D03 (Sturz aus großer Höhe)',
+                name: 'Horvath, Peter',
+                geb: '30.06.1984',
+                geschlecht: 'männlich',
+                bo: 'HANDELSKAI 94 / BAUSTELLE TOR 3\n1200 WIEN\n: @ABZ : ZUFAHRT ÜBER KAIBRÜCKE',
+                ftext: 'Bauarbeiter aus ca. 4,5m Höhe vom Arbeitsgerüst abgestürzt. Starke Schmerzen im Becken- und LWS-Bereich. Immobilisation nötig.'
+            },
+            'ANAPHYLAXIE': {
+                code: '02E01 (Allergische Reaktion / Schock)',
+                name: 'Sommer, Katharina',
+                geb: '08.09.1993',
+                geschlecht: 'weiblich',
+                bo: 'SCHÖNBRUNNER SCHLOSSPARK / GLASHAUS\n1130 WIEN\n: @ABZ : WEGMARKE 14',
+                ftext: 'Wespenstich im Halsbereich. Massives Quincke-Ödem, inspiratorischer Stridor, Urtikaria am gesamten Körper. RR 75/40.'
+            },
+            'CPR': {
+                code: '09E01 (Kreislaufstillstand / Reanimation)',
+                name: 'Wagner, Herbert',
+                geb: '17.12.1957',
+                geschlecht: 'männlich',
+                bo: 'KÄRNTNER STRASSE 28 / APOTHEKE\n1010 WIEN\n: @ABZ : EINGANGSBEREICH',
+                ftext: 'REANIMATION: Kunde plötzlich bewusstlos umgefallen. Schnappatmung, Pulslos. Laienreanimation und Telefon-CPR laufen!'
+            }
+        };
+
+        function selectScenario(key) {
+            const sc = scenarios[key];
+            if (!sc) return;
+
+            randomizeMissionNumbers();
+            document.getElementById('edit_code').value = sc.code;
+            document.getElementById('edit_name').value = sc.name;
+            document.getElementById('edit_geb').value = sc.geb;
+            document.getElementById('edit_geschl').value = sc.geschlecht;
+            document.getElementById('edit_bo').value = sc.bo;
+            document.getElementById('edit_ftext').value = sc.ftext;
+            recalcSV();
+        }
+
+        // 5. SYNTHESIZER DISPATCH SOUND (Keine externen MP3-Dateien nötig)
+        function playAlertTone() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                
+                // 3-Ton Pager / Melder Sequenz
+                [880, 1174, 1567].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.18);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.12);
+                    osc.stop(now + idx * 0.12 + 0.2);
+                });
+            } catch(e){}
+        }
+
+        // 6. ALARMIERUNG IN RAUM SENDEN
+        let dispatchCount = 0;
+
+        function dispatchMission() {
+            const now = new Date();
+            const ts = `${now.toLocaleDateString('de-DE')} ${now.toLocaleTimeString('de-DE')}`;
+
+            const payload = {
+                type: 'ALARM',
+                r_nr: document.getElementById('edit_rnr').value,
+                t_nr: document.getElementById('edit_tnr').value,
+                timestamp: ts,
+                code: document.getElementById('edit_code').value,
+                name: document.getElementById('edit_name').value,
+                geb: document.getElementById('edit_geb').value,
+                sv: document.getElementById('edit_sv').value,
+                geschlecht: document.getElementById('edit_geschl').value,
+                bo: document.getElementById('edit_bo').value,
+                ftext: document.getElementById('edit_ftext').value
+            };
+
+            const jsonStr = JSON.stringify(payload);
+
+            // Senden via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(jsonStr);
+            }
+            // Fallback via BroadcastChannel
+            bc.postMessage(payload);
+
+            playAlertTone();
+
+            // Logeintrag hinzufügen
+            dispatchCount++;
+            document.getElementById('log-counter').innerText = `${dispatchCount} Einsätze übertragen`;
+
+            const logBox = document.getElementById('dispatch-log');
+            if (dispatchCount === 1) logBox.innerHTML = '';
+
+            const logRow = document.createElement('div');
+            logRow.className = 'flex items-center justify-between bg-slate-900/60 border-l-2 border-red-500 px-2 py-1 rounded text-slate-300';
+            logRow.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-red-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
+                    <span class="text-yellow-400 font-bold">${payload.r_nr}</span>
+                    <span class="text-slate-400">${payload.code.split(' ')[0]}</span>
+                    <span class="text-slate-200">${payload.name}</span>
+                </div>
+                <div class="text-slate-400 text-[10px]">RAUM: ${roomCode} ✓</div>
+            `;
+            logBox.prepend(logRow);
+        }
+
+        // Initiales Szenario beim Start laden
+        selectScenario('ACS');
     </script>
 </body>
 </html>

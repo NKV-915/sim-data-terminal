@@ -4,450 +4,805 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sim Data Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #c0c0c0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; user-select: none; }
-        .win-outset { border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf; border-bottom: 2px solid #404040; border-right: 2px solid #404040; }
-        .win-inset { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #dfdfdf; border-right: 2px solid #dfdfdf; background-color: #e0e0e0; }
-        .win-input { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; background-color: transparent; padding: 2px 4px; }
-        .win-button { border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; background-color: #c0c0c0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .win-button:active:not(:disabled) { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; padding-top: 2px; padding-left: 2px; }
-        .win-button:disabled { opacity: 0.5; cursor: default; }
-        .win-group { border: 1px solid #808080; box-shadow: 1px 1px 0 #fff; position: relative; padding: 8px; }
-        
-        .tab-vertical { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; padding: 10px 4px; cursor: pointer; border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; background-color: #b0b0b0; margin-bottom: 2px; }
-        .tab-active { background-color: #c0c0c0; border-right: 2px solid #c0c0c0; font-weight: bold; }
-        .icon-svg { width: 20px; height: 20px; fill: #a0a0a0; }
-        
-        input, textarea { outline: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; font-weight: bold;}
-        .label-text { font-size: 11px; color: #555; text-transform: uppercase;}
-        
-        /* Modal & Overlay Overlay */
-        #alarm-modal, #bed-modal { background: rgba(0,0,0,0.5); }
-        .hospital-row:hover { background-color: #000080; color: white; }
-        .hospital-row.selected { background-color: #000080; color: white; }
-        .hospital-row.selected * { color: #ffffff !important; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #3a3a3a;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            font-size: 11px;
+            user-select: none;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Hauptfenster */
+        #window-frame {
+            width: 100vw;
+            height: 100vh;
+            background-color: #c0c0c0;
+            display: flex;
+            flex-direction: column;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+        }
+
+        /* Titelleiste */
+        .win-titlebar {
+            background: #2b3036;
+            color: #ffffff;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px 0 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .win-title-left { display: flex; align-items: center; gap: 6px; }
+        .win-controls { display: flex; gap: 2px; }
+        .win-ctrl-btn {
+            width: 16px; height: 14px;
+            background: #c0c0c0;
+            border-top: 1px solid #fff; border-left: 1px solid #fff;
+            border-bottom: 1px solid #404040; border-right: 1px solid #404040;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 9px; line-height: 1; font-weight: bold;
+        }
+
+        /* 3D Ränder */
+        .win-inset {
+            border-top: 2px solid #808080; border-left: 2px solid #808080;
+            border-bottom: 2px solid #ffffff; border-right: 2px solid #ffffff;
+            background-color: #dcdcdc;
+        }
+        .win-outset {
+            border-top: 2px solid #ffffff; border-left: 2px solid #ffffff;
+            border-bottom: 2px solid #808080; border-right: 2px solid #808080;
+            background-color: #c0c0c0;
+        }
+        .win-btn {
+            border-top: 2px solid #ffffff; border-left: 2px solid #ffffff;
+            border-bottom: 2px solid #606060; border-right: 2px solid #606060;
+            background-color: #c0c0c0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .win-btn:active:not(:disabled) {
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-bottom: 2px solid #ffffff; border-right: 2px solid #ffffff;
+            padding: 2px 0 0 2px;
+        }
+        .win-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .group-box {
+            border-top: 1px solid #808080; border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff; border-right: 1px solid #ffffff;
+            position: relative;
+        }
+
+        /* Typografie & Inputs */
+        .lbl { font-size: 11px; font-weight: 500; color: #404040; display: inline-block; }
+        .val-box {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+        }
+
+        /* Reiter Links */
+        .tab-btn {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            padding: 12px 2px;
+            font-size: 13px;
+            font-weight: 500;
+            background: #b5b5b5;
+            border-top: 2px solid #ffffff; border-left: 2px solid #ffffff;
+            border-bottom: 2px solid #707070; border-right: 2px solid #707070;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+        .tab-btn.active {
+            background: #c0c0c0;
+            border-right: 2px solid #c0c0c0;
+            font-weight: bold;
+        }
+
+        /* SVGs & Icons */
+        .svg-icon { width: 22px; height: 22px; fill: #888888; }
+        .icon-blue { fill: #0055b3 !important; }
+        .icon-green { fill: #7dbd34 !important; }
+
+        /* Status-Badges */
+        .badge {
+            font-size: 10px; font-weight: bold; color: #fff;
+            padding: 1px 4px; border: 1px solid #fff;
+            border-right-color: #404040; border-bottom-color: #404040;
+        }
+        .b-green { background: #388e3c; }
+        .b-red { background: #d32f2f; }
+        .b-gray { background: #616161; }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .hidden { display: none !important; }
+
+        /* Bettenübersicht Zeilen */
+        .bed-row {
+            display: flex; align-items: center; padding: 4px 6px;
+            font-size: 13px; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e0e0e0;
+        }
+        .bed-row:hover { background: #000080; color: #fff; }
+        .bed-row.selected { background: #000080; color: #fff; }
+        .bed-row.selected * { color: #fff !important; }
+        .dept-item {
+            padding: 6px 8px; font-size: 11px; cursor: pointer; border-bottom: 1px solid #ccc;
+        }
+        .dept-item:hover, .dept-item.selected {
+            background: #a0a0a0; font-weight: bold; color: #000;
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
+<body>
 
-    <!-- Red Alarm Modal -->
-    <div id="alarm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="bg-red-600 border-4 border-red-800 w-[560px] h-[270px] flex flex-col relative shadow-2xl p-4">
-            <div class="flex-1 flex flex-col items-center justify-start pt-9 text-black text-2xl md:text-[26px] font-bold text-center leading-snug">
-                Ein neuer Auftrag wurde empfangen!<br>
-                Auftragsnummer: <span id="alarm-r-nr"></span>
-            </div>
-            <button class="win-button w-16 h-16 absolute bottom-4 right-4 bg-[#c0c0c0]" onclick="acceptAlarm()">
-                <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#8cc63f"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-            </button>
+<div id="window-frame">
+
+    <!-- 1. Titelleiste -->
+    <div class="win-titlebar">
+        <div class="win-title-left">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#58a6ff"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#fff" stroke-width="2"/><line x1="3" y1="9" x2="21" y2="9" stroke="#fff" stroke-width="2"/></svg>
+            <span id="window-title">Sim Data Terminal</span>
+        </div>
+        <div class="win-controls">
+            <div class="win-ctrl-btn">_</div>
+            <div class="win-ctrl-btn">□</div>
+            <div class="win-ctrl-btn" style="color:#a00;">✕</div>
         </div>
     </div>
 
-    <!-- Bed List Modal -->
-    <div id="bed-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="bg-[#c0c0c0] win-outset w-[800px] h-[500px] flex flex-col p-2 shadow-2xl">
-            <div class="flex justify-between items-center bg-[#000080] text-white px-2 py-1 mb-2 font-bold text-sm">
-                <span>Bettenübersicht</span>
-                <button class="win-button w-6 h-6 bg-[#c0c0c0]" onclick="document.getElementById('bed-modal').classList.add('hidden')">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4 fill-black"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
-            </div>
-            
-            <div class="flex gap-2 flex-1 h-full overflow-hidden">
-                <div class="w-1/3 flex flex-col win-inset overflow-y-auto bg-white" id="bed-categories">
-                    <!-- Categories -->
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Interner Mann</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Interne Frau</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Kinderklinik - Intern</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Kinderklinik - Chirurgie</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Chirurgischer Mann</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Chirurgische Frau</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">Unfall allgemein</div>
-                    <div class="p-2 border-b cursor-pointer hover:bg-gray-200" onclick="selectCategory(this)">HNO Abteilung</div>
-                </div>
-                
-                <div class="w-2/3 flex flex-col win-inset bg-white overflow-hidden relative">
-                    <div class="flex bg-gray-300 font-bold text-xs p-1 border-b border-gray-400">
-                        <div class="w-16 text-center">Betten</div>
-                        <div class="w-24">Kürzel</div>
-                        <div class="flex-1">Krankenhaus</div>
+    <!-- 2. Hauptarbeitsbereich -->
+    <div style="flex: 1; padding: 6px; display: flex; flex-direction: column; gap: 5px; overflow: hidden;">
+
+        <!-- Kopf-Karten (EN, TS, OANZ, BO, IA) -->
+        <div class="win-inset" style="padding: 6px; display: flex; gap: 8px;">
+            <!-- Links (EN, BO) -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; align-items: center;">
+                    <span class="lbl" style="width: 32px;">EN:</span>
+                    <div class="win-inset" style="flex: 1; padding: 1px 6px; background:#e8e8e8;">
+                        <input id="f_en" class="val-box" readonly>
                     </div>
-                    <div id="hospital-list" class="flex-1 overflow-y-auto"></div>
                 </div>
-                
-                <div class="flex flex-col w-12 gap-2">
-                    <button class="win-button h-12" onclick="confirmHospitalBooking()">
-                        <svg class="icon-svg !w-6 !h-6" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#0055b3"/></svg>
-                    </button>
+                <div style="display: flex; flex: 1;">
+                    <span class="lbl" style="width: 32px; padding-top: 4px;">BO:</span>
+                    <div class="win-inset" style="flex: 1; padding: 4px 6px; background:#e8e8e8; height: 90px; overflow-y: auto;">
+                        <div id="f_bo" style="font-size: 14px; font-weight: bold; line-height: 1.35; white-space: pre-line;"></div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="mt-2 flex gap-2">
-                <button class="win-button w-32 h-10 border-2 !border-red-600 font-bold" onclick="requestBeds()">Bettenliste anfordern</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Final Finish Modal -->
-    <div id="finish-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-30">
-        <div class="bg-[#f0f0f0] border border-gray-400 w-[400px] flex flex-col items-center p-6 shadow-2xl">
-            <div class="text-xl font-bold mb-8 text-center">Soll der Auftrag wirklich<br>beendet werden?</div>
-            <div class="flex justify-between w-full px-4">
-                <button class="win-button w-16 h-16" onclick="document.getElementById('finish-modal').classList.add('hidden')">
-                    <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#e24a2b"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
-                <button class="win-button w-16 h-16" onclick="clearAllData()">
-                    <svg viewBox="0 0 24 24" class="w-10 h-10" style="fill:#8cc63f"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="flex-1 flex flex-col p-1 gap-1">
-        
-        <!-- Header Info -->
-        <div class="win-group flex gap-2 p-2">
-            <div class="flex flex-col gap-1 w-1/2">
-                <div class="flex items-center gap-2">
-                    <span class="label-text w-6">EN:</span>
-                    <input type="text" id="ui-en" class="win-input flex-1 font-bold text-lg" readonly>
+            <!-- Rechts (TS, OANZ, IA) -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="lbl" style="width: 24px;">TS:</span>
+                    <div class="win-inset" style="flex: 1; padding: 1px 6px; background:#e8e8e8;">
+                        <input id="f_ts" class="val-box" readonly>
+                    </div>
+                    <span class="lbl" style="margin-left: 4px;">OANZ:</span>
+                    <div class="win-inset" style="width: 60px; padding: 1px 6px; background:#e8e8e8; text-align: center;">
+                        <input id="f_oanz" class="val-box" style="text-align: center;" readonly>
+                    </div>
                 </div>
-                <div class="flex gap-2 h-full">
-                    <span class="label-text w-6">BO:</span>
-                    <textarea id="ui-bo" class="win-input flex-1 font-bold resize-none h-16" readonly></textarea>
-                </div>
-            </div>
-            
-            <div class="flex flex-col gap-1 w-1/2">
-                <div class="flex items-center gap-2">
-                    <span class="label-text w-6">TS:</span>
-                    <input type="text" id="ui-ts" class="win-input flex-1 font-bold text-lg" readonly>
-                    <span class="label-text ml-2">OANZ:</span>
-                    <input type="text" id="ui-oanz" class="win-input w-16 font-bold text-lg text-center" readonly>
-                </div>
-                <div class="flex gap-2 h-full">
-                    <span class="label-text w-6">IA:</span>
-                    <textarea id="ui-ia" class="win-input flex-1 resize-none h-16" readonly></textarea>
+                <div style="display: flex; flex: 1;">
+                    <span class="lbl" style="width: 24px; padding-top: 4px;">IA:</span>
+                    <div class="win-inset" style="flex: 1; padding: 4px 6px; background:#e8e8e8; height: 90px;">
+                        <textarea id="f_ia" class="val-box" style="resize:none; height:100%; font-size:12px;" readonly></textarea>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- QS Bar -->
-        <div class="flex items-center gap-2 px-2 mt-1">
-            <span class="label-text w-6">QS:</span>
-            <input type="text" id="ui-qs" class="win-input flex-1" readonly>
-        </div>
-
-        <!-- Tabs and Main Content Area -->
-        <div class="flex flex-1 gap-1 mt-1 overflow-hidden">
-            
-            <!-- Tab Buttons -->
-            <div class="flex flex-col w-8 z-10">
-                <div id="tab-daten-btn" class="tab-vertical tab-active flex-1" onclick="switchTab('daten')">Daten</div>
-                <div id="tab-patient-btn" class="tab-vertical flex-1" onclick="switchTab('patient')">Patient(en)</div>
-                <div class="h-10 win-button mt-auto mb-1">
-                    <svg viewBox="0 0 24 24" class="icon-svg" style="fill:#0055b3"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </div>
-            </div>
-
-            <!-- Tab Content Area -->
-            <div class="win-outset flex-1 bg-[#c0c0c0] relative -ml-[2px] p-2 flex flex-col z-0">
-                
-                <!-- DATEN TAB -->
-                <div id="tab-daten" class="flex flex-col gap-2 flex-1">
-                    <div class="flex items-center gap-2">
-                        <span class="label-text w-12">STATUS:</span>
-                        <input type="text" id="status-field" class="win-input flex-1 font-bold text-lg" readonly>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="label-text w-12">CODE:</span>
-                        <input type="text" id="ui-code" class="win-input flex-1 font-bold text-lg" readonly>
-                    </div>
-                    <div class="flex gap-2 flex-1">
-                        <span class="label-text w-12 pt-1">FTEXT:</span>
-                        <textarea id="ui-ftext" class="win-input flex-1 resize-none font-bold h-full"></textarea>
-                    </div>
-
-                    <!-- Workflow Buttons (Daten) -->
-                    <div id="action-bar-daten" class="flex gap-2 mt-auto pt-2 win-group">
-                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#d9534f"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6" stroke="#fff" stroke-width="2" fill="none"/></svg></button>
-                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#5bc0de"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#5bc0de" stroke-width="2"/><line x1="4" y1="8" x2="20" y2="8" stroke="#5bc0de" stroke-width="2"/><line x1="8" y1="4" x2="8" y2="20" stroke="#5bc0de" stroke-width="2"/></svg></button>
-                        <div class="flex-1"></div>
-                        
-                        <button id="btn-zum-bo" class="win-button w-12 h-12" onclick="advanceWorkflow(1)" disabled>
-                            <svg id="icon-zum-bo" class="icon-svg" viewBox="0 0 24 24"><path d="M5 10 H13 V6 L21 12 L13 18 V14 H5 Z M22 6 H24 V18 H22 Z"/></svg>
-                        </button>
-                        <button id="btn-am-bo" class="win-button w-12 h-12" onclick="advanceWorkflow(2)" disabled>
-                            <svg id="icon-am-bo" class="icon-svg" viewBox="0 0 24 24"><path d="M10 4 V12 H6 L12 20 L18 12 H14 V4 Z M6 22 H18 V24 H6 Z"/></svg>
-                        </button>
-
-                        <button class="win-button w-12 h-12"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-                    </div>
-                </div>
-
-                <!-- PATIENT TAB -->
-                <div id="tab-patient" class="flex-col gap-2 flex-1 hidden">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span id="ui-pat-id" class="font-bold text-lg border-b border-gray-400 pr-4 pb-1"></span>
-                    </div>
-                    <div class="flex gap-2 mb-1">
-                        <span class="label-text w-12">NAME:</span>
-                        <input type="text" id="ui-pat-name" class="win-input flex-1 font-bold" readonly>
-                        <span class="label-text ml-2">PANZ:</span>
-                        <input type="text" id="ui-panz" class="win-input w-12 text-center font-bold text-lg" readonly>
-                    </div>
-                    <div class="flex gap-2 mb-1">
-                        <span class="label-text w-12">STAT:</span>
-                        <input type="text" id="ui-pat-stat" class="win-input flex-1 font-bold text-lg" readonly>
-                    </div>
-                    <div class="flex gap-2 mb-1 h-16">
-                        <div class="flex flex-col w-2/3 gap-1">
-                            <div class="flex gap-2">
-                                <span class="label-text w-12">SV:</span>
-                                <input type="text" id="ui-sv" class="win-input flex-1 font-bold" readonly>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="label-text w-12">T-NR:</span>
-                                <input type="text" id="ui-t-nr" class="win-input flex-1 font-bold text-lg" readonly>
-                            </div>
-                        </div>
-                        <div class="flex flex-col w-1/3 gap-1">
-                            <div class="flex gap-2">
-                                <span class="label-text w-16">GEBDAT:</span>
-                                <input type="text" id="ui-geb" class="win-input flex-1 font-bold text-lg" readonly>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="label-text w-16">GESCHL:</span>
-                                <input type="text" id="ui-geschl" class="win-input flex-1 font-bold text-lg" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 mb-1">
-                        <span class="label-text w-12">Ziel:</span>
-                        <input type="text" id="ui-ziel" class="win-input flex-1 font-bold" readonly>
-                    </div>
-                    
-                    <div id="action-bar-patient" class="flex items-center gap-2 mt-auto p-1 win-group">
-                        <button class="win-button w-10 h-10"><svg class="icon-svg" style="fill:#8cc63f" viewBox="0 0 24 24"><path d="M14 6l5 5-5 5v-4H4v-2h10V6z M20 6h2v10h-2z"/></svg></button>
-                        
-                        <!-- Open Bed Modal -->
-                        <button class="win-button w-10 h-10" onclick="document.getElementById('bed-modal').classList.remove('hidden')">
-                            <svg class="icon-svg" style="fill:#0055b3" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        </button>
-                        
-                        <div class="flex-1"></div>
-                        
-                        <!-- Green Arrows (Patient Tab) -->
-                        <button id="btn-zum-ao" class="win-button w-12 h-12" onclick="advanceWorkflow(3)" disabled>
-                            <svg id="icon-zum-ao" class="icon-svg" viewBox="0 0 24 24"><path d="M5 10 H13 V6 L21 12 L13 18 V14 H5 Z M22 6 H24 V18 H22 Z"/></svg>
-                        </button>
-                        <button id="btn-am-ao" class="win-button w-12 h-12" onclick="advanceWorkflow(4)" disabled>
-                            <svg id="icon-am-ao" class="icon-svg" viewBox="0 0 24 24"><path d="M10 4 V12 H6 L12 20 L18 12 H14 V4 Z M6 22 H18 V24 H6 Z"/></svg>
-                        </button>
-
-                        <div class="w-4"></div>
-                        
-                        <!-- Red Checkmark to Finish -->
-                        <button id="btn-finish" class="win-button w-12 h-12" onclick="openFinishModal()" disabled>
-                            <svg id="icon-finish" viewBox="0 0 24 24" class="w-8 h-8" style="fill:#a0a0a0"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Sidebar Panel -->
-            <div class="flex flex-col w-12 z-10 gap-1 mt-2">
-                <button class="win-button h-12 mb-2"><svg class="icon-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#a0a0a0" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#a0a0a0" stroke-width="2"/><path d="M18 14l4 4-4 4v-8z" fill="#a0a0a0"/></svg></button>
-                <div class="flex-1"></div>
-                <button class="win-button h-12 mb-1"><svg class="icon-svg" viewBox="0 0 24 24" style="fill:#5bc0de"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h8v2H8V8zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"/><path d="M20 18h4v-4l-4 4z" fill="#8cc63f"/></svg></button>
+        <div style="display: flex; align-items: center; padding: 0 2px;">
+            <span class="lbl" style="width: 32px;">QS:</span>
+            <div class="win-inset" style="flex: 1; padding: 1px 6px; background:#e8e8e8; height: 20px;">
+                <input id="f_qs" class="val-box" style="font-size: 11px;" readonly>
             </div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="win-outset flex items-center h-8 bg-[#404040] text-white px-2 mt-1">
-            <span class="text-xs mr-4">ASB-915</span>
-            <div class="flex-1 flex justify-center items-center gap-4 text-xs font-bold">
-                <span>ABK-ABZ-SIM | Raum: <span id="sys-room-code" class="text-yellow-400"></span></span>
-                <span class="flex items-center gap-1"><svg class="w-3 h-3 fill-blue-400" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Bereit</span>
-                <span>Angemeldet</span>
+        <!-- Unterer Bereich mit Reitern & Werkzeugleiste -->
+        <div style="flex: 1; display: flex; gap: 4px; overflow: hidden; margin-top: 2px;">
+
+            <!-- Reiter-Streifen links -->
+            <div style="display: flex; flex-direction: column; width: 32px; z-index: 5;">
+                <div id="tab-btn-daten" class="tab-btn active" onclick="showTab('daten')">Daten</div>
+                <div id="tab-btn-patient" class="tab-btn" onclick="showTab('patient')">Patient(en)</div>
+                <div style="flex: 1;"></div>
+                <div class="win-btn" style="width: 32px; height: 32px; margin-bottom: 2px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#0055b3"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
             </div>
-            <div class="flex items-center text-xs font-bold gap-2">
-                <span id="clock-date"></span>
-                <span id="clock-time"></span>
+
+            <!-- Inhaltscontainer mit 3D-Rahmen -->
+            <div class="win-outset" style="flex: 1; padding: 8px; display: flex; flex-direction: column; position: relative; margin-left: -2px;">
+
+                <!-- ================= REITER: DATEN ================= -->
+                <div id="pane-daten" style="display: flex; flex-direction: column; height: 100%; gap: 6px;">
+                    <div style="display: flex; align-items: center;">
+                        <span class="lbl" style="width: 60px;">STATUS:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="f_status" class="val-box" style="font-size: 17px;" readonly>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="lbl" style="width: 60px;">CODE:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="f_code" class="val-box" style="font-size: 16px;" readonly>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex: 1;">
+                        <span class="lbl" style="width: 60px; padding-top: 4px;">FTEXT:</span>
+                        <div class="win-inset" style="flex: 1; padding: 4px 6px; background:#e8e8e8;">
+                            <textarea id="f_ftext" class="val-box" style="height: 100%; resize: none; font-size: 14px;" readonly></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Daten Action Bar -->
+                    <div class="group-box" style="margin-top: auto; padding: 6px; display: flex; align-items: center; gap: 8px;">
+                        <button class="win-btn" style="width: 48px; height: 44px;">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="#c0392b"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6" stroke="#fff" stroke-width="2" fill="none"/></svg>
+                        </button>
+                        <button class="win-btn" style="width: 48px; height: 44px;">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="#0055b3"><rect x="4" y="4" width="16" height="16" fill="none" stroke="#0055b3" stroke-width="2"/><line x1="4" y1="8" x2="20" y2="8" stroke="#0055b3" stroke-width="2"/><line x1="8" y1="4" x2="8" y2="20" stroke="#0055b3" stroke-width="2"/><path d="M14 14l5 5m0-5l-5 5" stroke="#7dbd34" stroke-width="2"/></svg>
+                        </button>
+                        <div style="flex: 1;"></div>
+
+                        <!-- 1. Zum Berufungsort (Blau) -->
+                        <button id="btn_zum_bo" class="win-btn" style="width: 48px; height: 44px;" onclick="advanceStatus(1)" disabled>
+                            <svg id="icon_zum_bo" class="svg-icon" viewBox="0 0 24 24"><path d="M4 10h9V6l8 6-8 6v-4H4v-4z M21 6h3v12h-3V6z"/></svg>
+                        </button>
+                        <!-- 2. Am Berufungsort (Blau) -->
+                        <button id="btn_am_bo" class="win-btn" style="width: 48px; height: 44px;" onclick="advanceStatus(2)" disabled>
+                            <svg id="icon_am_bo" class="svg-icon" viewBox="0 0 24 24"><path d="M10 4v9H6l6 8 6-8h-4V4h-4z M6 21h12v3H6v-3z"/></svg>
+                        </button>
+                        <!-- X Abbruch -->
+                        <button class="win-btn" style="width: 48px; height: 44px;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#888"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ================= REITER: PATIENT(EN) ================= -->
+                <div id="pane-patient" style="display: none; flex-direction: column; height: 100%; gap: 6px;">
+                    <!-- Reiter Header P-Nummer -->
+                    <div style="display: flex; align-items: center; border-bottom: 2px solid #808080; padding-bottom: 2px; margin-bottom: 4px;">
+                        <div class="win-outset" style="padding: 2px 14px; font-size: 15px; font-weight: bold; background: #c0c0c0; border-bottom: none;">
+                            <span id="p_id">-</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="lbl" style="width: 46px;">NAME:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="p_name" class="val-box" readonly>
+                        </div>
+                        <span class="lbl" style="margin-left: 8px;">PANZ:</span>
+                        <div class="win-inset" style="width: 50px; padding: 2px 6px; background:#e8e8e8; text-align: center;">
+                            <input id="p_panz" class="val-box" style="text-align: center;" readonly>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="lbl" style="width: 46px;">STAT:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="p_stat" class="val-box" readonly>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <div style="flex: 2; display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; align-items: center;">
+                                <span class="lbl" style="width: 46px;">SV:</span>
+                                <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                                    <input id="p_sv" class="val-box" readonly>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span class="lbl" style="width: 46px;">T-NR:</span>
+                                <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                                    <input id="p_tnr" class="val-box" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1.5; display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; align-items: center;">
+                                <span class="lbl" style="width: 55px;">GEBDAT:</span>
+                                <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                                    <input id="p_geb" class="val-box" readonly>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span class="lbl" style="width: 55px;">GESCHL:</span>
+                                <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                                    <input id="p_geschl" class="val-box" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="lbl" style="width: 46px;">PLS-ID:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="p_plsid" class="val-box" readonly>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="lbl" style="width: 46px;">Ziel:</span>
+                        <div class="win-inset" style="flex: 1; padding: 2px 6px; background:#e8e8e8;">
+                            <input id="p_ziel" class="val-box" style="font-weight: bold; color: #000;" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Patient Action Bar (Unten) -->
+                    <div class="group-box" style="margin-top: auto; padding: 4px; display: flex; align-items: center; gap: 4px;">
+                        <!-- 3. Zum Abgabeort (Grün) -->
+                        <button id="btn_zum_ao" class="win-btn" style="width: 44px; height: 42px;" onclick="advanceStatus(3)" disabled>
+                            <svg id="icon_zum_ao" class="svg-icon" viewBox="0 0 24 24"><path d="M4 10h9V6l8 6-8 6v-4H4v-4z M21 6h3v12h-3V6z"/></svg>
+                        </button>
+                        <!-- 4. Am Abgabeort (Grün) -->
+                        <button id="btn_am_ao" class="win-btn" style="width: 44px; height: 42px;" onclick="advanceStatus(4)" disabled>
+                            <svg id="icon_am_ao" class="svg-icon" viewBox="0 0 24 24"><path d="M10 4v9H6l6 8 6-8h-4V4h-4z M6 21h12v3H6v-3z"/></svg>
+                        </button>
+
+                        <!-- Bettenübersicht öffnen (Ortungsnadel) -->
+                        <button class="win-btn" style="width: 44px; height: 42px;" onclick="openBedModal()">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#0055b3"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        </button>
+
+                        <!-- Zuweisungs-Buttons (ARM, INB, PVW, BEL) -->
+                        <button class="win-btn" style="width: 42px; height: 42px; flex-direction: column; font-size: 9px; font-weight: bold; color: #0055b3;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#888"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>ARM
+                        </button>
+                        <button class="win-btn" style="width: 42px; height: 42px; flex-direction: column; font-size: 9px; font-weight: bold; color: #c0392b;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#0055b3"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>INB
+                        </button>
+                        <button class="win-btn" style="width: 42px; height: 42px; flex-direction: column; font-size: 9px; font-weight: bold; color: #0055b3;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#888"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>PVW
+                        </button>
+                        <button class="win-btn" style="width: 42px; height: 42px; flex-direction: column; font-size: 9px; font-weight: bold; color: #0055b3;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#888"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>BEL
+                        </button>
+
+                        <button class="win-btn" style="width: 44px; height: 42px;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#888"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                        </button>
+
+                        <div style="flex: 1;"></div>
+
+                        <!-- 5. Beenden Häkchen (wird rot) -->
+                        <button id="btn_finish" class="win-btn" style="width: 46px; height: 42px;" onclick="openFinishModal()" disabled>
+                            <svg id="icon_finish" viewBox="0 0 24 24" width="24" height="24" fill="#888"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
             </div>
+
+            <!-- Seitenleiste Rechts (Exakte Werkzeugleiste) -->
+            <div style="display: flex; flex-direction: column; width: 44px; gap: 4px; padding-top: 2px;">
+                <button class="win-btn" style="height: 44px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#777"><rect x="4" y="4" width="16" height="16" fill="none" stroke="#777" stroke-width="2"/><line x1="7" y1="8" x2="17" y2="8" stroke="#777" stroke-width="2"/><line x1="7" y1="12" x2="17" y2="12" stroke="#777" stroke-width="2"/><line x1="7" y1="16" x2="13" y2="16" stroke="#777" stroke-width="2"/><path d="M16 15l4 4-4 4v-8z" fill="#777"/></svg>
+                </button>
+                <button class="win-btn" style="height: 44px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#777"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M18 14l4 4-4 4v-8z" fill="#777"/></svg>
+                </button>
+                <button class="win-btn" style="height: 44px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#777"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M6 14l-4 4 4 4v-8z" fill="#777"/></svg>
+                </button>
+                <div style="flex: 1;"></div>
+                <button class="win-btn" style="height: 44px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="4" width="10" height="7" fill="none" stroke="#0055b3" stroke-width="1.5"/><rect x="11" y="13" width="10" height="7" fill="none" stroke="#0055b3" stroke-width="1.5"/><path d="M18 7a5 5 0 0 1-5 5" fill="none" stroke="#7dbd34" stroke-width="2"/><path d="M6 17a5 5 0 0 1 5-5" fill="none" stroke="#7dbd34" stroke-width="2"/></svg>
+                </button>
+                <button class="win-btn" style="height: 44px; margin-bottom: 2px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#0055b3"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="#0055b3" stroke-width="2"/><line x1="3" y1="9" x2="21" y2="9" stroke="#0055b3" stroke-width="2"/><line x1="8" y1="9" x2="8" y2="20" stroke="#0055b3" stroke-width="1"/><line x1="13" y1="9" x2="13" y2="20" stroke="#0055b3" stroke-width="1"/><line x1="18" y1="9" x2="18" y2="20" stroke="#0055b3" stroke-width="1"/></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. Statusleiste Unten -->
+    <div style="background: #3b3b3b; color: #fff; height: 26px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; font-size: 11px; font-weight: bold; border-top: 1px solid #707070;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span>ASB-915</span>
+            <span style="color: #ccc;">ABK-ABZ-SIM</span>
+            <div style="display: flex; align-items: center; gap: 4px; color: #58a6ff;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#58a6ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Bereit
+            </div>
+            <span>Angemeldet</span>
+            <div style="display: flex; gap: 2px; align-items: center;">
+                <span class="badge b-green">LTE</span>
+                <span class="badge b-green">ELS</span>
+                <span class="badge b-red">GPS</span>
+                <span class="badge b-green">EEP</span>
+                <span class="badge b-gray">0</span>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="st_date">01.02.2023</span>
+            <span id="st_time">13:34:27</span>
         </div>
     </div>
 
-    <script>
-        // RAUM-LOGIK AUSLESEN
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomCode = urlParams.get('room') || 'SIM1';
-        document.getElementById('sys-room-code').innerText = roomCode;
+</div>
 
-        // Netzwerk-Setup (Raum im WS-Pfad mitgeben)
-        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let ws = new WebSocket(`${protocol}//${location.host}?room=${roomCode}`);
-        const bc = new BroadcastChannel('sim_data_' + roomCode);
+<!-- ================= MODAL: 1. ALARMIERUNG (ROT) ================= -->
+<div id="modal_alarm" class="modal-overlay hidden">
+    <div style="background: #e60000; width: 540px; height: 250px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #ff4d4d;">
+        <div style="color: #000; font-size: 26px; font-weight: bold; text-align: center; line-height: 1.4; padding: 0 20px;">
+            Ein neuer Auftrag wurde empfangen!<br>
+            Auftragsnummer: <span id="alarm_rnr"></span>
+        </div>
+        <button class="win-btn" style="position: absolute; right: 20px; bottom: 16px; width: 64px; height: 56px;" onclick="acceptAlarm()">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#7dbd34"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+        </button>
+    </div>
+</div>
 
-        let currentAlarmData = null;
-        let workflowStep = 0; 
-        
-        // Clock
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock-date').innerText = now.toLocaleDateString('de-DE');
-            document.getElementById('clock-time').innerText = now.toLocaleTimeString('de-DE');
-        }, 1000);
+<!-- ================= MODAL: 2. BETTENÜBERSICHT ================= -->
+<div id="modal_bed" class="modal-overlay hidden">
+    <div class="win-outset" style="width: 820px; height: 520px; display: flex; flex-direction: column; padding: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
+        <!-- Dialog Header -->
+        <div style="background: #000080; color: #fff; padding: 3px 6px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Bettenübersicht</span>
+            <button class="win-btn" style="width: 16px; height: 16px; font-size: 10px; font-weight: bold;" onclick="closeBedModal()">✕</button>
+        </div>
 
-        function handleIncomingMessage(msg) {
-            try {
-                const data = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
-                if(data.type === 'ALARM') {
-                    currentAlarmData = data;
-                    document.getElementById('alarm-r-nr').innerText = data.r_nr;
-                    document.getElementById('alarm-modal').classList.remove('hidden');
-                }
-            } catch(e){}
-        }
+        <div style="flex: 1; display: flex; gap: 4px; padding-top: 4px; overflow: hidden;">
+            <!-- Links: Fachabteilungen -->
+            <div style="width: 200px; display: flex; flex-direction: column; gap: 4px;">
+                <div class="win-inset" style="flex: 1; background: #fff; overflow-y: auto;">
+                    <div style="background: #e0e0e0; padding: 3px 6px; font-weight: bold; border-bottom: 1px solid #808080;">Name</div>
+                    <div id="dept-list">
+                        <div class="dept-item selected" onclick="selectDept(this)">Interner Mann</div>
+                        <div class="dept-item" onclick="selectDept(this)">Interne Frau</div>
+                        <div class="dept-item" onclick="selectDept(this)">Kinderklinik - Intern</div>
+                        <div class="dept-item" onclick="selectDept(this)">Kinderklinik - Chirurgie</div>
+                        <div class="dept-item" onclick="selectDept(this)">Chirurgischer Mann</div>
+                        <div class="dept-item" onclick="selectDept(this)">Chirurgische Frau</div>
+                        <div class="dept-item" onclick="selectDept(this)">Unfall allgemein</div>
+                        <div class="dept-item" onclick="selectDept(this)">Betriebsunfall</div>
+                        <div class="dept-item" onclick="selectDept(this)">Unfallchirurgischer Schenkel...</div>
+                        <div class="dept-item" onclick="selectDept(this)">Neurologischer Mann</div>
+                        <div class="dept-item" onclick="selectDept(this)">Neurologische Frau</div>
+                        <div class="dept-item" onclick="selectDept(this)">Hautabteilung</div>
+                        <div class="dept-item" onclick="selectDept(this)">Urologische Abteilung</div>
+                        <div class="dept-item" onclick="selectDept(this)">HNO Abteilung</div>
+                    </div>
+                </div>
+                <!-- Pagination Buttons Links -->
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <button class="win-btn" style="width: 38px; height: 28px; font-weight: bold;">▲</button>
+                    <span style="font-size: 11px; font-weight: bold;">1 von 19</span>
+                    <button class="win-btn" style="width: 38px; height: 28px; font-weight: bold; background: #0055b3; color: #fff;">▼</button>
+                </div>
+                <!-- Bettenliste anfordern (Rot umrahmt) -->
+                <button class="win-btn" style="height: 38px; border: 2px solid #d32f2f; font-weight: bold; font-size: 12px; margin-top: 2px;" onclick="requestBeds()">
+                    Bettenliste anfordern
+                </button>
+            </div>
 
-        ws.onmessage = handleIncomingMessage;
-        bc.onmessage = handleIncomingMessage;
+            <!-- Mitte: Tabelle Betten / Kürzel / KH -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                <div class="win-inset" style="flex: 1; background: #fff; overflow-y: auto; display: flex; flex-direction: column;">
+                    <div style="display: flex; background: #d0d0d0; padding: 4px 6px; font-weight: bold; border-bottom: 1px solid #808080;">
+                        <span style="width: 70px;">Betten</span>
+                        <span style="width: 90px;">Kürzel</span>
+                        <span style="flex: 1;">Krankenhaus</span>
+                    </div>
+                    <div id="hospital-rows" style="flex: 1; overflow-y: auto; background: #fff;"></div>
+                </div>
+                <!-- Pagination Buttons Mitte -->
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                    <button class="win-btn" style="width: 38px; height: 28px; font-weight: bold;">▲</button>
+                    <span id="lbl_count" style="font-size: 11px; font-weight: bold;">0 von 0</span>
+                    <button class="win-btn" style="width: 38px; height: 28px; font-weight: bold;">▼</button>
+                </div>
+            </div>
 
-        function acceptAlarm() {
-            document.getElementById('alarm-modal').classList.add('hidden');
-            if(!currentAlarmData) return;
+            <!-- Rechts: Reiterleiste der Bettenübersicht -->
+            <div style="width: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <button class="win-btn" style="width: 42px; height: 42px;" onclick="confirmBooking()">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#0055b3"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                </button>
 
-            // Fill UI
-            document.getElementById('ui-en').value = currentAlarmData.r_nr;
-            document.getElementById('ui-ts').value = currentAlarmData.timestamp;
-            document.getElementById('ui-oanz').value = '1/1';
-            document.getElementById('ui-bo').value = currentAlarmData.bo;
-            document.getElementById('ui-code').value = currentAlarmData.code;
-            document.getElementById('ui-ftext').value = currentAlarmData.ftext;
-            
-            document.getElementById('ui-pat-id').innerText = 'P' + Math.floor(Math.random()*900000+100000);
-            document.getElementById('ui-pat-name').value = currentAlarmData.name;
-            document.getElementById('ui-panz').value = '1';
-            document.getElementById('ui-pat-stat').value = 'Patient vorhanden';
-            document.getElementById('ui-sv').value = currentAlarmData.sv;
-            document.getElementById('ui-t-nr').value = currentAlarmData.t_nr;
-            document.getElementById('ui-geb').value = currentAlarmData.geb;
-            document.getElementById('ui-geschl').value = currentAlarmData.geschlecht;
-            document.getElementById('ui-ziel').value = ''; // Reset Ziel
+                <div class="tab-btn active" style="margin-top: 10px; font-size: 11px; padding: 10px 2px;">Bettenliste</div>
+                <div class="tab-btn" style="font-size: 11px; padding: 10px 2px;">Krankenhäuser</div>
+                <div class="tab-btn" style="font-size: 11px; padding: 10px 2px;">Allg. Ziele</div>
+                <div style="flex: 1;"></div>
 
-            // Enable First Step
-            document.getElementById('status-field').value = "Einsatz übernommen";
-            workflowStep = 0;
-            updateButtons();
-        }
+                <button class="win-btn" style="width: 42px; height: 42px;" onclick="closeBedModal()">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#0055b3"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function switchTab(tabName) {
-            if(tabName === 'daten') {
-                document.getElementById('tab-daten').classList.remove('hidden');
-                document.getElementById('tab-patient').classList.add('hidden');
-                document.getElementById('tab-daten-btn').classList.add('tab-active');
-                document.getElementById('tab-patient-btn').classList.remove('tab-active');
-            } else {
-                document.getElementById('tab-daten').classList.add('hidden');
-                document.getElementById('tab-patient').classList.remove('hidden');
-                document.getElementById('tab-patient').classList.add('flex');
-                document.getElementById('tab-daten-btn').classList.remove('tab-active');
-                document.getElementById('tab-patient-btn').classList.add('tab-active');
+<!-- ================= MODAL: 3. BEENDEN BESTÄTIGUNG ================= -->
+<div id="modal_finish" class="modal-overlay hidden">
+    <div style="background: #ededed; width: 440px; padding: 30px 24px; border: 2px solid #808080; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center;">
+        <div style="font-size: 21px; font-weight: bold; color: #000; text-align: center; margin-bottom: 35px; line-height: 1.35;">
+            Soll der Auftrag wirklich<br>beendet werden?
+        </div>
+        <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 20px;">
+            <button class="win-btn" style="width: 72px; height: 60px;" onclick="closeFinishModal()">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="#e64a19"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+            <button class="win-btn" style="width: 72px; height: 60px;" onclick="confirmFinish()">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="#7dbd34"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. RAUM LOGIK AUS URL ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('room') || 'SIM1';
+    document.getElementById('window-title').innerText = `Sim Data Terminal - [${room}]`;
+
+    // WebSocket & BroadcastChannel
+    const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let socket = new WebSocket(`${wsProto}//${location.host}?room=${room}`);
+    const bc = new BroadcastChannel('sim_data_' + room);
+
+    // Live Uhrzeit
+    function updateClock() {
+        const now = new Date();
+        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const y = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+
+        document.getElementById('st_date').innerText = `${d}.${m}.${y}`;
+        document.getElementById('st_time').innerText = `${hh}:${mm}:${ss}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Workflow & Datenzustand
+    let activeAlarm = null;
+    let currentStep = 0; // 0=Einsatz übernommen, 1=Zum BO, 2=Am BO, 3=Zum AO, 4=Am AO
+
+    // Eingehende Alarme empfangen
+    function onIncomingData(raw) {
+        try {
+            const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (data.type === 'ALARM') {
+                activeAlarm = data;
+                document.getElementById('alarm_rnr').innerText = data.r_nr;
+                document.getElementById('modal_alarm').classList.remove('hidden');
             }
+        } catch(e){}
+    }
+
+    socket.onmessage = (e) => onIncomingData(e.data);
+    bc.onmessage = (e) => onIncomingData(e.data);
+
+    // Alarm bestätigen & Felder füllen
+    function acceptAlarm() {
+        document.getElementById('modal_alarm').classList.add('hidden');
+        if (!activeAlarm) return;
+
+        // Daten ins Terminal laden
+        document.getElementById('f_en').value = activeAlarm.r_nr;
+        document.getElementById('f_ts').value = activeAlarm.timestamp;
+        document.getElementById('f_oanz').value = '1/1';
+        document.getElementById('f_bo').innerText = activeAlarm.bo;
+        document.getElementById('f_code').value = activeAlarm.code;
+        document.getElementById('f_ftext').value = activeAlarm.ftext;
+
+        // Patientendaten
+        document.getElementById('p_id').innerText = activeAlarm.r_nr.replace('R', 'P');
+        document.getElementById('p_name').value = activeAlarm.name;
+        document.getElementById('p_panz').value = '1';
+        document.getElementById('p_stat').value = 'Patient vorhanden';
+        document.getElementById('p_sv').value = activeAlarm.sv;
+        document.getElementById('p_tnr').value = activeAlarm.t_nr;
+        document.getElementById('p_geb').value = activeAlarm.geb;
+        document.getElementById('p_geschl').value = activeAlarm.geschlecht;
+        document.getElementById('p_ziel').value = '';
+
+        currentStep = 0;
+        document.getElementById('f_status').value = 'Einsatz übernommen';
+        refreshButtons();
+    }
+
+    // Reiter-Wechsel
+    function showTab(t) {
+        document.getElementById('pane-daten').style.display = (t === 'daten') ? 'flex' : 'none';
+        document.getElementById('pane-patient').style.display = (t === 'patient') ? 'flex' : 'none';
+        document.getElementById('tab-btn-daten').className = 'tab-btn' + (t === 'daten' ? ' active' : '');
+        document.getElementById('tab-btn-patient').className = 'tab-btn' + (t === 'patient' ? ' active' : '');
+    }
+
+    // Workflow-Schritte
+    function advanceStatus(step) {
+        currentStep = step;
+        const statusField = document.getElementById('f_status');
+
+        if (step === 1) statusField.value = 'Zum Berufungsort';
+        if (step === 2) statusField.value = 'Am Berufungsort';
+        if (step === 3) statusField.value = 'Zum Abgabeort';
+        if (step === 4) statusField.value = 'Am Abgabeort';
+
+        refreshButtons();
+    }
+
+    // Tasten-Aktivierung & Farbwechsel
+    function refreshButtons() {
+        const bZumBo = document.getElementById('btn_zum_bo');
+        const bAmBo  = document.getElementById('btn_am_bo');
+        const bZumAo = document.getElementById('btn_zum_ao');
+        const bAmAo  = document.getElementById('btn_am_ao');
+        const bFin   = document.getElementById('btn_finish');
+
+        const iZumBo = document.getElementById('icon_zum_bo');
+        const iAmBo  = document.getElementById('icon_am_bo');
+        const iZumAo = document.getElementById('icon_zum_ao');
+        const iAmAo  = document.getElementById('icon_am_ao');
+        const iFin   = document.getElementById('icon_finish');
+
+        const hasGoal = document.getElementById('p_ziel').value.trim() !== '';
+
+        // Reset
+        bZumBo.disabled = true; bAmBo.disabled = true;
+        bZumAo.disabled = true; bAmAo.disabled = true;
+        bFin.disabled = true;
+
+        iZumBo.className.baseVal = 'svg-icon';
+        iAmBo.className.baseVal = 'svg-icon';
+        iZumAo.className.baseVal = 'svg-icon';
+        iAmAo.className.baseVal = 'svg-icon';
+        iFin.setAttribute('fill', '#888');
+
+        if (!activeAlarm) return;
+
+        // Step 0: Einsatz übernommen -> Zum BO frei
+        if (currentStep === 0) {
+            bZumBo.disabled = false;
         }
-
-        function advanceWorkflow(step) {
-            workflowStep = step;
-            updateButtons();
+        // Step 1: Zum BO -> Am BO frei
+        else if (currentStep === 1) {
+            iZumBo.className.baseVal = 'svg-icon icon-blue';
+            bAmBo.disabled = false;
         }
-
-        function updateButtons() {
-            const sf = document.getElementById('status-field');
-            const bZumBo = document.getElementById('btn-zum-bo'); const iZumBo = document.getElementById('icon-zum-bo');
-            const bAmBo = document.getElementById('btn-am-bo');   const iAmBo = document.getElementById('icon-am-bo');
-            const bZumAo = document.getElementById('btn-zum-ao'); const iZumAo = document.getElementById('icon-zum-ao');
-            const bAmAo = document.getElementById('btn-am-ao');   const iAmAo = document.getElementById('icon-am-ao');
-            const bFin = document.getElementById('btn-finish');   const iFin = document.getElementById('icon-finish');
-
-            const hasHospital = document.getElementById('ui-ziel').value.trim() !== "";
-
-            // Reset all
-            bZumBo.disabled=true; bAmBo.disabled=true; bZumAo.disabled=true; bAmAo.disabled=true; bFin.disabled=true;
-            iZumBo.classList.remove('icon-active-blue'); iAmBo.classList.remove('icon-active-blue');
-            iZumAo.classList.remove('icon-active-green'); iAmAo.classList.remove('icon-active-green');
-            iFin.style.fill = '#a0a0a0';
-
-            if(workflowStep === 0 && document.getElementById('ui-en').value) {
-                bZumBo.disabled = false;
-            }
-            if(workflowStep >= 1) { sf.value = "Zum Berufungsort"; bAmBo.disabled = false; iZumBo.classList.add('icon-active-blue'); }
-            if(workflowStep >= 2) { sf.value = "Am Berufungsort"; bZumAo.disabled = !hasHospital; iAmBo.classList.add('icon-active-blue'); }
-            if(workflowStep >= 3) { sf.value = "Zum Abgabeort"; bAmAo.disabled = false; iZumAo.classList.add('icon-active-green'); }
-            if(workflowStep >= 4) { sf.value = "Am Abgabeort"; bFin.disabled = false; iAmAo.classList.add('icon-active-green'); iFin.style.fill = '#e24a2b'; }
+        // Step 2: Am BO -> Zum AO frei (sobald Zielkrankenhaus gebucht)
+        else if (currentStep === 2) {
+            iZumBo.className.baseVal = 'svg-icon icon-blue';
+            iAmBo.className.baseVal = 'svg-icon icon-blue';
+            if (hasGoal) bZumAo.disabled = false;
         }
-
-        // Bed Booking Logic
-        const hospitals = [
-            { k: '@KHR', n: 'Klinikum Herz-Rupert' },
-            { k: '@SMZ', n: 'St. Markus Zentrum' },
-            { k: '@WKH', n: 'Waldviertel Klinikum Hietzing' },
-            { k: '@DKW', n: 'Donau-Klinik West' }
-        ];
-        let selectedHospital = null;
-
-        function selectCategory(el) {
-            document.querySelectorAll('#bed-categories div').forEach(d => d.classList.remove('bg-gray-300', 'font-bold'));
-            el.classList.add('bg-gray-300', 'font-bold');
+        // Step 3: Zum AO -> Am AO frei
+        else if (currentStep === 3) {
+            iZumBo.className.baseVal = 'svg-icon icon-blue';
+            iAmBo.className.baseVal = 'svg-icon icon-blue';
+            iZumAo.className.baseVal = 'svg-icon icon-green';
+            bAmAo.disabled = false;
         }
-
-        function requestBeds() {
-            const list = document.getElementById('hospital-list');
-            list.innerHTML = '';
-            selectedHospital = null;
-            
-            const num = Math.floor(Math.random() * 4) + 1; // 1-4
-            let shuffled = [...hospitals].sort(() => 0.5 - Math.random()).slice(0, num);
-            
-            shuffled.forEach(h => {
-                const beds = Math.floor(Math.random() * 8) + 1; // 1-8
-                const row = document.createElement('div');
-                row.className = 'flex border-b cursor-pointer p-1 text-sm hospital-row items-center font-bold text-gray-700';
-                row.onclick = () => {
-                    document.querySelectorAll('.hospital-row').forEach(r => r.classList.remove('selected'));
-                    row.classList.add('selected');
-                    selectedHospital = h.k + ' ' + h.n;
-                };
-                row.innerHTML = `<div class="w-16 text-center text-lg">${beds}</div><div class="w-24 text-[#000080]">${h.k}</div><div class="flex-1">${h.n}</div>`;
-                list.appendChild(row);
-            });
+        // Step 4: Am AO -> Häkchen rot & frei
+        else if (currentStep === 4) {
+            iZumBo.className.baseVal = 'svg-icon icon-blue';
+            iAmBo.className.baseVal = 'svg-icon icon-blue';
+            iZumAo.className.baseVal = 'svg-icon icon-green';
+            iAmAo.className.baseVal = 'svg-icon icon-green';
+            bFin.disabled = false;
+            iFin.setAttribute('fill', '#e60000');
         }
+    }
 
-        function confirmHospitalBooking() {
-            if(selectedHospital) {
-                document.getElementById('ui-ziel').value = selectedHospital;
-                document.getElementById('bed-modal').classList.add('hidden');
-                
-                // If we were already driving to or arrived at old target, reset to "Zum Abgabeort"
-                if(workflowStep >= 3) {
-                    workflowStep = 2; // Jump back to "Am Berufungsort" so they can drive again
-                }
-                updateButtons();
-            }
+    // --- BETTENÜBERSICHT LOGIK ---
+    const fantasyHospitals = [
+        { k: '@KHR', n: 'Klinikum Herz-Rupert' },
+        { k: '@SMZ', n: 'St. Markus Zentrum' },
+        { k: '@WKH', n: 'Waldviertel Klinikum Hietzing' },
+        { k: '@DKW', n: 'Donau-Klinik West' }
+    ];
+    let selectedBooking = null;
+
+    function openBedModal() { document.getElementById('modal_bed').classList.remove('hidden'); }
+    function closeBedModal() { document.getElementById('modal_bed').classList.add('hidden'); }
+
+    function selectDept(el) {
+        document.querySelectorAll('#dept-list div').forEach(d => d.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function requestBeds() {
+        const list = document.getElementById('hospital-rows');
+        list.innerHTML = '';
+        selectedBooking = null;
+
+        const count = Math.floor(Math.random() * 4) + 1; // 1-4 Krankenhäuser
+        const shuffled = [...fantasyHospitals].sort(() => 0.5 - Math.random()).slice(0, count);
+
+        shuffled.forEach(h => {
+            const beds = Math.floor(Math.random() * 8) + 1; // 1-8 Betten
+            const row = document.createElement('div');
+            row.className = 'bed-row';
+            row.innerHTML = `<span style="width:70px; text-align:center;">${beds}</span><span style="width:90px; color:#000080;">${h.k}</span><span style="flex:1;">${h.n}</span>`;
+            row.onclick = () => {
+                document.querySelectorAll('.bed-row').forEach(r => r.classList.remove('selected'));
+                row.classList.add('selected');
+                selectedBooking = `${h.k} ${h.n}`;
+            };
+            list.appendChild(row);
+        });
+
+        document.getElementById('lbl_count').innerText = `${count} von ${count}`;
+    }
+
+    function confirmBooking() {
+        if (!selectedBooking) return;
+        document.getElementById('p_ziel').value = selectedBooking;
+        closeBedModal();
+
+        // Wenn bereits unterwegs oder am alten KH, zurückstufen auf "Zum Abgabeort"
+        if (currentStep >= 3) {
+            currentStep = 2; // wieder am BO bzw. Neu-Anfahrt
         }
+        refreshButtons();
+    }
 
-        function openFinishModal() { document.getElementById('finish-modal').classList.remove('hidden'); }
+    // --- BEENDEN POPUP LOGIK ---
+    function openFinishModal() { document.getElementById('modal_finish').classList.remove('hidden'); }
+    function closeFinishModal() { document.getElementById('modal_finish').classList.add('hidden'); }
 
-        function clearAllData() {
-            document.querySelectorAll('input:not(#status-field), textarea').forEach(el => el.value = '');
-            document.getElementById('ui-pat-id').innerText = '';
-            document.getElementById('status-field').value = '';
-            document.getElementById('finish-modal').classList.add('hidden');
-            currentAlarmData = null;
-            workflowStep = 0;
-            updateButtons();
-            switchTab('daten');
-        }
-    </script>
+    function confirmFinish() {
+        closeFinishModal();
+        // Alle Felder leeren
+        document.getElementById('f_en').value = '';
+        document.getElementById('f_ts').value = '';
+        document.getElementById('f_oanz').value = '';
+        document.getElementById('f_bo').innerText = '';
+        document.getElementById('f_code').value = '';
+        document.getElementById('f_ftext').value = '';
+        document.getElementById('f_status').value = '';
+
+        document.getElementById('p_id').innerText = '-';
+        document.getElementById('p_name').value = '';
+        document.getElementById('p_panz').value = '';
+        document.getElementById('p_stat').value = '';
+        document.getElementById('p_sv').value = '';
+        document.getElementById('p_tnr').value = '';
+        document.getElementById('p_geb').value = '';
+        document.getElementById('p_geschl').value = '';
+        document.getElementById('p_ziel').value = '';
+
+        activeAlarm = null;
+        currentStep = 0;
+        refreshButtons();
+        showTab('daten');
+    }
+</script>
+
 </body>
 </html>
