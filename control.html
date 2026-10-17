@@ -7,6 +7,7 @@
 
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dispatch CAD">
 
@@ -71,7 +72,7 @@
 </head>
 <body class="text-slate-100 h-screen flex flex-col overflow-hidden font-sans select-none">
 
-    <!-- OBERE LEITSTELLEN-STATUSLEISTE -->
+    <!-- Statusleiste -->
     <header class="h-14 bg-dispatch-card/90 backdrop-blur border-b border-slate-800 px-5 flex items-center justify-between shrink-0 shadow-lg">
         <div class="flex items-center gap-3">
             <div class="relative flex items-center justify-center w-8 h-8 rounded-lg bg-red-950/60 border border-red-500/40">
@@ -86,20 +87,17 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <!-- Raum-Wähler & Status -->
             <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-inner">
                 <span class="text-[11px] font-mono font-semibold text-slate-400">RAUM:</span>
                 <input id="input-room" class="bg-black/60 border border-slate-600 rounded px-2 py-0.5 font-mono text-sm font-bold text-yellow-400 w-24 text-center uppercase tracking-wider focus:border-yellow-400 focus:outline-none" value="SIM1">
                 <button onclick="changeRoom()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">Setzen</button>
             </div>
 
-            <!-- Verbindungstatus -->
             <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg">
                 <span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span id="conn-text" class="text-xs font-mono font-medium text-emerald-400">ONLINE</span>
             </div>
 
-            <!-- Live Uhrzeit -->
             <div class="font-mono text-right pl-2 border-l border-slate-800">
                 <div id="clock-time" class="text-base font-bold text-slate-100 leading-none">12:00:00</div>
                 <div id="clock-date" class="text-[10px] text-slate-400 leading-none mt-1">01.01.2026</div>
@@ -107,23 +105,21 @@
         </div>
     </header>
 
-    <!-- HAUPTBEREICH: SPLIT-LAYOUT -->
+    <!-- Split-Layout -->
     <main class="flex-1 flex gap-4 p-4 overflow-hidden">
 
-        <!-- LINKE SPALTE: AMPDS SCHNELL-SZENARIEN (52%) -->
+        <!-- Notfall-Vorlagen -->
         <section class="w-[52%] flex flex-col gap-2.5 overflow-hidden">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
                     <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">8 VORLAGEN</span>
                 </div>
-                <span class="text-[11px] text-slate-400">Klick lädt & berechnet Daten neu</span>
+                <span class="text-[11px] text-slate-400">Klick generiert Daten neu</span>
             </div>
 
-            <!-- Szenarien Grid -->
             <div class="flex-1 grid grid-cols-2 gap-2.5 overflow-y-auto pr-1">
-                <!-- ACS -->
-                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
@@ -137,8 +133,7 @@
                     </div>
                 </button>
 
-                <!-- APOPLEX -->
-                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
@@ -152,8 +147,7 @@
                     </div>
                 </button>
 
-                <!-- ATEMNOT -->
-                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
@@ -167,8 +161,7 @@
                     </div>
                 </button>
 
-                <!-- KRAMPF -->
-                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
@@ -182,8 +175,7 @@
                     </div>
                 </button>
 
-                <!-- TRAUMA -->
-                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
@@ -197,8 +189,7 @@
                     </div>
                 </button>
 
-                <!-- STURZ AUS HÖHE -->
-                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
@@ -212,8 +203,7 @@
                     </div>
                 </button>
 
-                <!-- ANAPHYLAXIE -->
-                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
@@ -227,8 +217,7 @@
                     </div>
                 </button>
 
-                <!-- REANIMATION -->
-                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition-all duration-150 flex flex-col justify-between">
+                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2 py-0.5 rounded animate-pulse">09E01</span>
@@ -244,7 +233,7 @@
             </div>
         </section>
 
-        <!-- RECHTE SPALTE: AKTIVER AUFTRAG & FEINJUSTIERUNG (48%) -->
+        <!-- Formular & Senden -->
         <section class="w-[48%] flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div class="flex items-center gap-2">
@@ -256,9 +245,7 @@
                 </button>
             </div>
 
-            <!-- Formularfelder -->
             <div class="flex-1 overflow-y-auto pr-1 py-3 flex flex-col gap-3 text-xs">
-                <!-- R & T Nummern -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Auftrag (EN / R-NR)</label>
@@ -270,7 +257,6 @@
                     </div>
                 </div>
 
-                <!-- AMPDS & Patient -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">AMPDS Code & Text</label>
@@ -282,14 +268,13 @@
                     </div>
                 </div>
 
-                <!-- SV-Nummer, Geburtsdatum, Geschlecht -->
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geburtsdatum</label>
                         <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer (10-stellig)</label>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer</label>
                         <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
                     </div>
                     <div>
@@ -302,20 +287,17 @@
                     </div>
                 </div>
 
-                <!-- Berufungsort (BO) -->
                 <div>
                     <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Berufungsort (BO / Einsatzadresse)</label>
                     <textarea id="edit_bo" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
                 </div>
 
-                <!-- Freitext (FTEXT) -->
                 <div>
                     <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Einsatz-Freitext (FTEXT)</label>
                     <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
                 </div>
             </div>
 
-            <!-- Alarm Auslöser Button -->
             <button onclick="dispatchMission()" class="mt-2 w-full py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.99] font-tech font-bold text-base tracking-widest text-white glow-red flex items-center justify-center gap-3 transition-all">
                 <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span>🚨 ALARMIERUNG JETZT SENDEN (<span id="btn-room-tag">SIM1</span>)</span>
@@ -324,7 +306,7 @@
 
     </main>
 
-    <!-- UNTERE HISTORIE / LOG-LEISTE -->
+    <!-- Protokoll-Historie -->
     <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-slate-800 pb-1">
             <span>LETZTE DISPATCH-PROTOKOLLE</span>
@@ -336,7 +318,6 @@
     </footer>
 
     <script>
-        // 1. Raum-Logik aus URL
         const urlParams = new URLSearchParams(window.location.search);
         let roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('input-room').value = roomCode;
@@ -358,15 +339,12 @@
             ws.onclose = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
                 document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-amber-400';
-                document.getElementById('conn-text').innerText = 'OFFLINE (BC)';
-                setTimeout(connectWebSocket, 3000);
+                document.getElementById('conn-text').innerText = 'OFFLINE';
+                setTimeout(connectWebSocket, 2500);
             };
-
-            ws.onerror = () => ws.close();
         }
         connectWebSocket();
 
-        // Beim Aufwecken des iPads sofort wieder verbinden
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && (!ws || ws.readyState !== WebSocket.OPEN)) {
                 connectWebSocket();
@@ -378,7 +356,6 @@
             window.location.search = `?room=${encodeURIComponent(newRoom)}`;
         }
 
-        // 2. Live Uhrzeit
         function updateClock() {
             const now = new Date();
             document.getElementById('clock-time').innerText = now.toLocaleTimeString('de-DE');
@@ -387,7 +364,6 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 3. Generatoren (Österreichische SV-Nummer, R- & T-Nummer)
         function generateRandom(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
         function generateSV(gebDatum) {
@@ -414,7 +390,6 @@
             document.getElementById('edit_sv').value = generateSV(geb);
         }
 
-        // 4. Szenarien-Datenbank (Wien Realistisch)
         const scenarios = {
             'ACS': {
                 code: '10D05 (Herzinfarkt / Angina Pectoris)',
@@ -496,15 +471,10 @@
             recalcSV();
         }
 
-        // 5. Audio-Entsperrung & Melder-Ton für iOS Safari
         let audioCtx = null;
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
         window.addEventListener('touchstart', initAudio, { once: true });
         window.addEventListener('click', initAudio, { once: true });
@@ -514,8 +484,6 @@
                 initAudio();
                 if (!audioCtx) return;
                 const now = audioCtx.currentTime;
-                
-                // 3-Ton Melder Sequenz
                 [880, 1174, 1567].forEach((freq, idx) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -531,21 +499,27 @@
             } catch(e){}
         }
 
-        // 6. Alarmierung senden
         let dispatchCount = 0;
 
         function dispatchMission() {
             const now = new Date();
             const ts = `${now.toLocaleDateString('de-DE')} ${now.toLocaleTimeString('de-DE')}`;
+            const rNr = document.getElementById('edit_rnr').value;
 
+            // Universelles Format für alle Terminal-Versionen
             const payload = {
                 type: 'ALARM',
-                r_nr: document.getElementById('edit_rnr').value,
+                rNummer: rNr,
+                r_nr: rNr,
+                tNummer: document.getElementById('edit_tnr').value,
                 t_nr: document.getElementById('edit_tnr').value,
                 timestamp: ts,
                 code: document.getElementById('edit_code').value,
+                patientName: document.getElementById('edit_name').value,
                 name: document.getElementById('edit_name').value,
+                gebDat: document.getElementById('edit_geb').value,
                 geb: document.getElementById('edit_geb').value,
+                svNummer: document.getElementById('edit_sv').value,
                 sv: document.getElementById('edit_sv').value,
                 geschlecht: document.getElementById('edit_geschl').value,
                 bo: document.getElementById('edit_bo').value,
@@ -554,22 +528,19 @@
 
             const jsonStr = JSON.stringify(payload);
 
-            // WebSocket Übertragung
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(jsonStr);
             } else {
                 connectWebSocket();
                 setTimeout(() => {
                     if (ws && ws.readyState === WebSocket.OPEN) ws.send(jsonStr);
-                }, 400);
+                }, 300);
             }
 
-            // BroadcastChannel für lokale Tabs
             if (bc) bc.postMessage(payload);
 
             playAlertTone();
 
-            // Protokollzeile schreiben
             dispatchCount++;
             document.getElementById('log-counter').innerText = `${dispatchCount} Einsätze übertragen`;
 
@@ -581,16 +552,15 @@
             logRow.innerHTML = `
                 <div class="flex items-center gap-2">
                     <span class="text-red-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
-                    <span class="text-yellow-400 font-bold">${payload.r_nr}</span>
+                    <span class="text-yellow-400 font-bold">${payload.rNummer}</span>
                     <span class="text-slate-400">${payload.code.split(' ')[0]}</span>
-                    <span class="text-slate-200">${payload.name}</span>
+                    <span class="text-slate-200">${payload.patientName}</span>
                 </div>
                 <div class="text-slate-400 text-[10px]">RAUM: ${roomCode} ✓</div>
             `;
             logBox.prepend(logRow);
         }
 
-        // Initiale Vorbelegung
         selectScenario('ACS');
     </script>
 </body>

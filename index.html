@@ -2,33 +2,105 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sim System - Login</title>
+
+    <!-- iOS / iPadOS PWA Einstellungen -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sim Terminal">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000080'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif'>🚑</text></svg>">
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: #222; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 320px; }
-        h2 { margin-top: 0; color: #f1f1f1; }
-        input { width: 100%; padding: 12px; font-size: 18px; text-align: center; border-radius: 8px; border: 2px solid #444; background: #000; color: #fff; box-sizing: border-box; text-transform: uppercase; margin-bottom: 20px; font-weight: bold; letter-spacing: 2px; }
-        button { width: 100%; padding: 14px; margin: 6px 0; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
-        button:hover { opacity: 0.85; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #111827;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .card {
+            background: #1f2937;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 320px;
+            border: 1px solid #374151;
+        }
+        h2 { margin: 0 0 6px 0; font-size: 22px; color: #f3f4f6; }
+        .sub { font-size: 12px; color: #9ca3af; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 13px; color: #d1d5db; font-weight: 600; text-align: left; }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 20px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid #4b5563;
+            background: #111827;
+            color: #facc15;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            outline: none;
+        }
+        input:focus { border-color: #38bdf8; }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin: 6px 0;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
         .btn-term { background: #0055b3; color: #fff; }
-        .btn-ctrl { background: #e24a2b; color: #fff; }
+        .btn-ctrl { background: #dc2626; color: #fff; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>Sim Data System</h2>
-        <label style="display:block; margin-bottom: 8px; font-size: 14px; color: #aaa;">Aktiver Raum-Code:</label>
-        <input type="text" id="roomInput" value="SIM1" placeholder="RAUM CODE">
+        <div class="sub">ASB WIEN NOTFALLRETTUNG</div>
         
-        <button class="btn-term" onclick="startApp('terminal.html')">💻 Data-Terminal</button>
-        <button class="btn-ctrl" onclick="startApp('control.html')">📡 Leitstellen-Steuerung</button>
+        <label for="roomInput">AKTIVER RAUM-CODE:</label>
+        <input type="text" id="roomInput" value="SIM1" placeholder="RAUM">
+        
+        <button class="btn-term" onclick="startApp('terminal.html')">
+            <span>💻</span> Data-Terminal öffnen
+        </button>
+        <button class="btn-ctrl" onclick="startApp('control.html')">
+            <span>📡</span> Leitstellen-Steuerung
+        </button>
     </div>
 
     <script>
         function startApp(page) {
-            const room = document.getElementById('roomInput').value.trim() || 'SIM1';
-            location.href = `${page}?room=${encodeURIComponent(room)}`;
+            const room = document.getElementById('roomInput').value.trim().toUpperCase() || 'SIM1';
+            window.location.href = `${page}?room=${encodeURIComponent(room)}`;
+        }
+
+        // Service Worker registrieren
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
 </body>
