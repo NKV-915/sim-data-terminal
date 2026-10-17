@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sim Data Terminal</title>
 
-    <!-- iPadOS / iOS PWA Einstellungen -->
+    <!-- PWA & Safe Area Einstellungen -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -27,8 +27,9 @@
             --title-blue-end: #1084d0;
         }
 
+        /* Safe-Area-Padding verhindert das Hineinragen in Uhrzeit & Akkuanzeige */
         body {
-            background-color: #121214;
+            background-color: #000000;
             font-family: Tahoma, "Segoe UI", Arial, sans-serif;
             font-size: 13px;
             color: #000000;
@@ -41,6 +42,11 @@
             -webkit-user-select: none;
             touch-action: manipulation;
             overflow: hidden;
+            padding-top: max(env(safe-area-inset-top), 24px);
+            padding-bottom: max(env(safe-area-inset-bottom), 8px);
+            padding-left: max(env(safe-area-inset-left), 8px);
+            padding-right: max(env(safe-area-inset-right), 8px);
+            box-sizing: border-box;
         }
 
         .win-raised {
@@ -169,11 +175,12 @@
         }
     </style>
 </head>
-<body class="p-2 flex flex-col items-center">
+<body>
 
-    <div class="win-raised w-full max-w-[1140px] h-[750px] flex flex-col relative">
+    <!-- Terminal-Rahmen passt sich an die verbleibende Bildschirmhöhe an -->
+    <div class="win-raised w-full max-w-[1140px] h-full max-h-[740px] flex flex-col relative">
         
-        <!-- Windows Titelleiste -->
+        <!-- Titelleiste -->
         <div class="h-8 bg-gradient-to-r from-[var(--title-blue-start)] to-[var(--title-blue-end)] flex items-center justify-between px-2 m-[2px]">
             <div class="flex items-center text-white font-bold text-[12px] tracking-wide ml-1">
                 <i class="fa-solid fa-desktop mr-2 text-[12px]"></i>
@@ -192,27 +199,22 @@
 
         <!-- Terminal Hauptansicht -->
         <div id="view-mdt" class="flex-1 flex flex-row overflow-hidden p-1 pt-0">
-            
-            <!-- Linker Arbeitsbereich -->
             <div class="flex-1 flex flex-col gap-1 p-1 overflow-hidden">
-                
-                <!-- Kopfbereich: EN, TS, OANZ -->
                 <div class="flex flex-row items-center gap-2 h-9">
                     <div class="flex items-center w-[30%]">
                         <label class="w-8 font-semibold text-gray-800 text-xs">EN:</label>
-                        <input id="input-en" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
+                        <input id="input-en" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
                     </div>
                     <div class="flex items-center w-[50%]">
                         <label class="w-8 text-right pr-2 font-semibold text-gray-800 text-xs">TS:</label>
-                        <input id="input-ts" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
+                        <input id="input-ts" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
                     </div>
                     <div class="flex items-center w-[20%]">
                         <label class="w-12 text-right pr-2 font-semibold text-gray-800 text-xs">OANZ:</label>
-                        <input id="input-oanz" type="text" value="" readonly class="win-field font-bold text-sm text-center flex-1 h-full">
+                        <input id="input-oanz" type="text" readonly class="win-field font-bold text-sm text-center flex-1 h-full">
                     </div>
                 </div>
 
-                <!-- Adressbereich: BO & IA -->
                 <div class="flex flex-row gap-2 h-44">
                     <div class="flex flex-row flex-1">
                         <label class="w-8 pt-1 font-semibold text-gray-800 text-xs">BO:</label>
@@ -224,16 +226,12 @@
                     </div>
                 </div>
 
-                <!-- QS Zeile -->
                 <div class="flex flex-row items-center h-7">
                     <label class="w-8 font-semibold text-gray-800 text-xs">QS:</label>
                     <input id="input-qs" type="text" readonly class="win-field flex-1 h-full">
                 </div>
 
-                <!-- Reiterbereich -->
                 <div class="flex-1 flex flex-row mt-1 min-h-0">
-                    
-                    <!-- Vertikale Reiterknöpfe -->
                     <div class="w-10 flex flex-col pt-1 select-none">
                         <div id="tab-daten-btn" class="tab-btn-active flex-1 flex flex-col items-center justify-center py-2" onclick="switchTab('daten')">
                             <span id="tab-daten-text" class="vertical-text font-bold text-xs text-gray-950">Daten</span>
@@ -250,11 +248,11 @@
                         <div class="flex flex-col gap-2 flex-1">
                             <div class="flex items-center h-8">
                                 <label class="w-20 uppercase text-xs font-semibold text-gray-800">STATUS:</label>
-                                <input id="input-status" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
+                                <input id="input-status" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
                             </div>
                             <div class="flex items-center h-8">
                                 <label class="w-20 uppercase text-xs font-semibold text-gray-800">CODE:</label>
-                                <input id="input-code" type="text" value="" readonly class="win-field font-bold text-sm flex-1 h-full">
+                                <input id="input-code" type="text" readonly class="win-field font-bold text-sm flex-1 h-full">
                             </div>
                             <div class="flex flex-row flex-1 min-h-[90px]">
                                 <label class="w-20 uppercase text-xs pt-1 font-semibold text-gray-800">FTEXT:</label>
@@ -274,19 +272,17 @@
                             </div>
                             
                             <div class="flex gap-2">
-                                <button id="btn-zum-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(1)" title="Schritt 1: Zum Berufungsort">
+                                <button id="btn-zum-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(1)">
                                     <svg viewBox="0 0 24 24" class="w-7 h-7">
                                         <path id="svg-zum-bo" fill="#888888" d="M4 10h8V6l7 6-7 6v-4H4v-4zm16-4h2.5v12H20V6z"/>
                                     </svg>
                                 </button>
-
-                                <button id="btn-am-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(2)" title="Schritt 2: Am Berufungsort">
+                                <button id="btn-am-bo" class="win-btn w-12 h-12" disabled onclick="handleWorkflowStep(2)">
                                     <svg viewBox="0 0 24 24" class="w-7 h-7">
                                         <path id="svg-am-bo" fill="#888888" d="M10 4v8H6l6 7 6-7h-4V4h-4zm-6 16h16v2.5H4V20z"/>
                                     </svg>
                                 </button>
-
-                                <button onclick="openFinishModal()" class="win-btn w-12 h-12" title="Abbrechen">
+                                <button onclick="openFinishModal()" class="win-btn w-12 h-12">
                                     <i class="fa-solid fa-xmark text-gray-500 text-3xl"></i>
                                 </button>
                             </div>
@@ -309,23 +305,23 @@
                                             <label class="w-14 text-xs font-semibold text-gray-800">NAME:</label>
                                             <input id="input-p-name" type="text" class="win-field flex-1 h-7 font-bold">
                                             <label class="text-xs font-semibold text-gray-800 w-10 text-right">PANZ:</label>
-                                            <input id="input-p-panz" type="text" value="" readonly class="win-field w-12 h-7 font-bold text-center">
+                                            <input id="input-p-panz" type="text" readonly class="win-field w-12 h-7 font-bold text-center">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">STAT:</label>
-                                            <input id="input-p-stat" type="text" value="" readonly class="win-field flex-1 h-7 font-bold">
+                                            <input id="input-p-stat" type="text" readonly class="win-field flex-1 h-7 font-bold">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">SV:</label>
                                             <input id="input-p-sv" type="text" class="win-field flex-1 h-7 font-mono font-bold text-sm tracking-wider">
                                             <label class="text-xs font-semibold text-gray-800 w-16 text-right">GEBDAT:</label>
-                                            <input id="input-p-gebdat" type="text" value="" readonly class="win-field w-32 h-7 font-bold font-mono">
+                                            <input id="input-p-gebdat" type="text" readonly class="win-field w-32 h-7 font-bold font-mono">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">T-NR:</label>
-                                            <input id="input-p-tnr" type="text" value="" readonly class="win-field flex-1 h-7 font-bold font-mono">
+                                            <input id="input-p-tnr" type="text" readonly class="win-field flex-1 h-7 font-bold font-mono">
                                             <label class="text-xs font-semibold text-gray-800 w-16 text-right">GESCHL:</label>
-                                            <input id="input-p-geschl" type="text" value="" readonly class="win-field w-32 h-7 font-bold">
+                                            <input id="input-p-geschl" type="text" readonly class="win-field w-32 h-7 font-bold">
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">PLS-ID:</label>
@@ -333,7 +329,7 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <label class="w-14 text-xs font-semibold text-gray-800">Ziel:</label>
-                                            <input id="input-p-ziel" type="text" value="" readonly class="win-field flex-1 h-7 font-bold text-blue-900">
+                                            <input id="input-p-ziel" type="text" readonly class="win-field flex-1 h-7 font-bold text-blue-900">
                                         </div>
                                     </div>
 
@@ -392,13 +388,10 @@
                                         </button>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </div>
 
             <!-- Seitenleiste rechts -->
@@ -408,13 +401,11 @@
                     <button class="win-btn w-full h-12 relative"><i class="fa-solid fa-user text-gray-500 text-xl"></i></button>
                     <button class="win-btn w-full h-12 relative"><i class="fa-solid fa-user text-gray-500 text-xl"></i></button>
                 </div>
-                
                 <div class="flex flex-col gap-2 mb-1">
                     <button class="win-btn w-full h-12"><i class="fa-solid fa-network-wired text-[#6496c8] text-xl"></i></button>
                     <button class="win-btn w-full h-12"><i class="fa-solid fa-calendar-days text-[#6496c8] text-2xl"></i></button>
                 </div>
             </div>
-
         </div>
 
         <!-- Bettenübersicht -->
@@ -457,7 +448,7 @@
             </div>
         </div>
 
-        <!-- Statusleiste: ASB-915 und ABK-ABZ-SIM mit dynamischem ELS-Status -->
+        <!-- Statusleiste -->
         <div class="h-8 bg-[#3a3a3a] text-white flex items-center justify-between px-2 text-[11px] gap-2 select-none border-t border-[var(--win-light)]">
             <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 text-white font-bold tracking-wide">ASB-915</div>
             <div class="status-box bg-[#3a3a3a] border-gray-600 px-4 font-bold text-[#ffeb3b]">ABK-ABZ-SIM</div>
@@ -465,8 +456,7 @@
             <div class="status-box bg-[#3a3a3a] border-gray-600 px-3 text-white">Angemeldet</div>
             <div class="flex gap-1 items-center">
                 <div class="status-box bg-[#329632] text-white px-2">LTE</div>
-                <!-- ELS zeigt live an, ob WebSocket verbunden ist! -->
-                <div id="badge-els" class="status-box bg-[#c83232] text-white px-2 animate-pulse" title="Verbindungsstatus zur Leitstelle">ELS</div>
+                <div id="badge-els" class="status-box bg-[#c83232] text-white px-2 animate-pulse" title="Verbindung zum Server">ELS</div>
                 <div class="status-box bg-[#c83232] text-white px-2">GPS</div>
                 <div class="status-box bg-[#329632] text-white px-2">EEP</div>
                 <div class="status-box bg-gray-500 text-white px-3">0</div>
@@ -528,6 +518,7 @@
 
         function setELSStatus(online) {
             const el = document.getElementById('badge-els');
+            if (!el) return;
             if (online) {
                 el.className = 'status-box bg-[#329632] text-white px-2';
             } else {
@@ -538,7 +529,9 @@
         function connectSocket() {
             try {
                 const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                socket = new WebSocket(`${proto}//${window.location.host}?room=${encodeURIComponent(roomCode)}`);
+                // Falls lokal aufgerufen, den Render-Host verwenden, ansonsten den aktuellen Host
+                const host = window.location.host || 'sim-data-terminal.onrender.com';
+                socket = new WebSocket(`${proto}//${host}?room=${encodeURIComponent(roomCode)}`);
 
                 socket.onopen = () => {
                     setELSStatus(true);
@@ -546,7 +539,6 @@
 
                 socket.onmessage = async (event) => {
                     let raw = event.data;
-                    // Löst den Safari-spezifischen Blob-Fehler
                     if (raw instanceof Blob) {
                         raw = await raw.text();
                     }
@@ -554,22 +546,26 @@
                         const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
                         handleIncomingTransmission(parsed);
                     } catch (e) {
-                        console.error('Fehler beim Parsen der Nachricht:', e);
+                        console.error('JSON Error:', e);
                     }
                 };
 
                 socket.onclose = () => {
                     setELSStatus(false);
-                    setTimeout(connectSocket, 2000);
+                    setTimeout(connectSocket, 2500);
+                };
+
+                socket.onerror = () => {
+                    setELSStatus(false);
                 };
             } catch(e) {
                 setELSStatus(false);
-                setTimeout(connectSocket, 2000);
+                setTimeout(connectSocket, 2500);
             }
         }
         connectSocket();
 
-        // Beim Aufwecken des iPads sofort wieder verbinden
+        // Beim Entsperren des iPads sofort Verbindung prüfen
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && (!socket || socket.readyState !== WebSocket.OPEN)) {
                 connectSocket();
@@ -582,10 +578,8 @@
 
         let currentMissionPayload = null;
 
-        // Universeller Parser: Versteht sowohl ALARM als auch DISPATCH_ALARM und alle Feldnamen
         function handleIncomingTransmission(msg) {
             if (!msg) return;
-
             const t = msg.type || '';
             if (t === 'ALARM' || t === 'DISPATCH_ALARM') {
                 const d = msg.data || msg;

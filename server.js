@@ -4,44 +4,63 @@ const WebSocket = require('ws');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
 
+// Statische Dateien ausliefern
 app.use(express.static(__dirname));
 
-// WebSocket-Server mit UTF-8 Zwang und Raum-Logik
+// WebSocket Server
+const wss = new WebSocket.Server({ server });
+
 wss.on('connection', (ws, req) => {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const room = (url.searchParams.get('room') || 'SIM1').toUpperCase();
-    
+    // Robuste URL-Auflösung (verhindert Absturz bei Proxy-Headern)
+    let room = 'SIM1';
+    try {
+        const parsedUrl = new URL(req.url, 'http://localhost');
+        room = (parsedUrl.searchParams.get('room') || 'SIM1').toUpperCase();
+    } catch (e) {
+        room = 'SIM1';
+    }
+
     ws.room = room;
     ws.isAlive = true;
 
+    // Pong-Antwort registrieren
     ws.on('pong', () => { ws.isAlive = true; });
 
-    ws.on('message', (data) => {
-        // Zwingend als UTF-8 String übertragen (verhindert Safari Blob-Fehler)
-        const messageString = data.toString('utf-8');
-
-        wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN && client.room === room) {
-                client.send(messageString);
-            }
-        });
+    // Fehler abfangen (verhindert Node.js Crash bei plötzlichem iPad-Standby)
+    ws.on('error', (err) => {
+        console.warn(`[WS Error in Raum ${room}]:`, err.message);
     });
+
+    ws.on('message', (message) => {
+        try {
+            const messageString = message.toString('utf-8');
+            // Nur an Clients im selben Raum weiterleiten
+            wss.clients.forEach((client) => {
+                if (client !== ws && client.readyState === WebSocket.OPEN && client.room === room) {
+                    client.send(messageString);
+                }
+            });
+        } catch (err) {
+            console.error('Fehler beim Weiterleiten:', err);
+        }
+    });
+
+    console.log(`Client verbunden in Raum [${room}]. Aktive Clients: ${wss.clients.size}`);
 });
 
-// Keep-Alive Ping-Intervall gegen Standby-Trennung bei iOS
-const interval = setInterval(() => {
+// Ping-Intervall gegen den aggressiven iOS-Ruhezustand
+const pingInterval = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
         ws.isAlive = false;
-        ws.ping();
+        try { ws.ping(); } catch (e) {}
     });
-}, 20000);
+}, 15000);
 
-wss.on('close', () => clearInterval(interval));
+wss.on('close', () => clearInterval(pingInterval));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Sim-Server aktiv auf Port ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server läuft auf Port ${PORT}`);
 });
