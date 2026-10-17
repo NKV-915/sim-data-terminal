@@ -1,8 +1,8 @@
 {
   "name": "Sim Data Terminal",
   "short_name": "SimTerminal",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#121214",
   "theme_color": "#000080",
