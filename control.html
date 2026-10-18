@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Leitstellen-Steuerung | Dispatch Control</title>
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dispatch CAD">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -101,133 +107,130 @@
 
     <!-- Split-Layout -->
     <main class="flex-1 flex gap-4 p-4 overflow-hidden">
-        <!-- Notfall-Vorlagen -->
-        <section class="w-[52%] flex flex-col gap-2.5 overflow-hidden">
+
+        <!-- Kompakte Notfall-Vorlagen (12 Szenarien) -->
+        <section class="w-[50%] flex flex-col gap-2.5 overflow-hidden">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">8 VORLAGEN</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">12 VORLAGEN</span>
                 </div>
-                <span class="text-[11px] text-slate-400">Klick generiert Daten neu</span>
+                <span class="text-[11px] text-slate-400">Klick lädt & berechnet Daten neu</span>
             </div>
 
             <div class="flex-1 grid grid-cols-2 gap-2.5 overflow-y-auto pr-1">
-                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
-                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Vernichtungsschmerz retrosternal, Ausstrahlung li. Arm, kaltschweißig.</div>
+                <!-- 1. ACS -->
+                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2.5 py-0.5 rounded">10D05</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1030 Wien</span><span>65 J. • M</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
                 </button>
 
-                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
-                            <span class="text-[10px] font-mono text-slate-400">CHARLIE</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">FAST positiv: Fazialisparese, Armheberschwäche, Aphasie seit 25 Min.</div>
+                <!-- 2. APOPLEX -->
+                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">28C01</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1150 Wien</span><span>74 J. • W</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
                 </button>
 
-                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
-                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Zyanose, Stridor, schwere COPD/Asthma-Exazerbation, SpO2 78%.</div>
+                <!-- 3. ATEMNOT -->
+                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2.5 py-0.5 rounded">06D02</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1020 Wien</span><span>58 J. • M</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
                 </button>
 
-                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
-                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Tonisch-klonische Serie ohne Wiedererlangen des Bewusstseins. Zungenbiss.</div>
+                <!-- 4. KRAMPF -->
+                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2.5 py-0.5 rounded">12D02</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1070 Wien</span><span>36 J. • M</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
                 </button>
 
-                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
-                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / PKW vs Fuß</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Fußgänger von PKW erfasst, über Motorhaube geschleudert. SHT II.</div>
+                <!-- 5. TRAUMA -->
+                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2.5 py-0.5 rounded">29D02</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1100 Wien</span><span>24 J. • W</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / Fußgänger</div>
                 </button>
 
-                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
-                            <span class="text-[10px] font-mono text-slate-400">DELTA</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Gerüststurz Baustelle. Verdacht auf Wirbelsäulen- und Beckentrauma.</div>
+                <!-- 6. STURZ -->
+                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2.5 py-0.5 rounded">17D03</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1210 Wien</span><span>42 J. • M</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
                 </button>
 
-                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
-                            <span class="text-[10px] font-mono text-slate-400">ECHO</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
-                        <div class="text-[11px] text-slate-400 line-clamp-2 mt-1">Wespenstich Halsbereich. Quincke-Ödem, inspiratorischer Stridor, RR 70/40.</div>
+                <!-- 7. ANAPHYLAXIE -->
+                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2.5 py-0.5 rounded">02E01</span>
+                        <span class="text-[10px] font-mono text-rose-400 tracking-wider font-semibold">ECHO</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1140 Wien</span><span>31 J. • W</span>
-                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
                 </button>
 
-                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2 py-0.5 rounded animate-pulse">09E01</span>
-                            <span class="text-[10px] font-mono text-red-400 font-bold">REANIMATION</span>
-                        </div>
-                        <div class="font-tech text-sm font-bold text-red-200 group-hover:text-white">Herz-Kreislauf-Stillstand</div>
-                        <div class="text-[11px] text-slate-300 line-clamp-2 mt-1">Plötzlicher Kollaps, keine Atmung, TCPR (Telefonanleitung) läuft.</div>
+                <!-- 8. REANIMATION -->
+                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2.5 py-0.5 rounded animate-pulse">09E01</span>
+                        <span class="text-[10px] font-mono text-red-400 tracking-wider font-semibold">ECHO</span>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span>1010 Wien</span><span>69 J. • M</span>
+                    <div class="font-tech text-sm md:text-base font-bold text-red-200 group-hover:text-white">Kreislaufstillstand / CPR</div>
+                </button>
+
+                <!-- 9. HYPOGLYKÄMIE (NEU) -->
+                <button onclick="selectScenario('HYPO')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">13C01</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
                     </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Hypoglykämie / Diabetes</div>
+                </button>
+
+                <!-- 10. AKUTES ABDOMEN (NEU) -->
+                <button onclick="selectScenario('ABDOMEN')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2.5 py-0.5 rounded">01D01</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Akutes Abdomen / Kolik</div>
+                </button>
+
+                <!-- 11. INTOXIKATION (NEU) -->
+                <button onclick="selectScenario('INTOX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">23C01</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Intoxikation / Mischintox</div>
+                </button>
+
+                <!-- 12. PSYCHIATRISCHE KRISE (NEU) -->
+                <button onclick="selectScenario('PSYCH')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2.5 py-0.5 rounded">25B03</span>
+                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">BRAVO</span>
+                    </div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Psychiatrische Krise</div>
                 </button>
             </div>
         </section>
 
-        <!-- Formular & Senden -->
-        <section class="w-[48%] flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden">
+        <!-- Auftrags-Editor (Rechts bleibt unverändert) -->
+        <section class="w-[50%] flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
@@ -320,9 +323,8 @@
 
         function connectWebSocket() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            // Falls lokal aufgerufen, den Render-Host verwenden, ansonsten den aktuellen Host
-            const host = window.location.host || 'sim-data-terminal.onrender.com';
-            ws = new WebSocket(`${proto}//${host}?room=${encodeURIComponent(roomCode)}`);
+            const host = window.location.host;
+            ws = new WebSocket(`${proto}//${host}/?room=${encodeURIComponent(roomCode)}`);
 
             ws.onopen = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
@@ -390,6 +392,7 @@
             document.getElementById('edit_sv').value = generateSV(geb);
         }
 
+        // 12 Szenarien (inkl. 4 neuer Fälle)
         const scenarios = {
             'ACS': {
                 code: '10D05 (Herzinfarkt / Angina Pectoris)',
@@ -397,7 +400,7 @@
                 geb: '12.05.1961',
                 geschlecht: 'männlich',
                 bo: 'HOLLERGASSE 2-6 / Stiege 3 / Tür 12\n1150 WIEN\n: @ABZ : CODE #1244',
-                ftext: 'TESTEINSATZ ASB: Kardiologische Vorerkrankung. Patient klagt über akuten retrosternalen Druck, Dyspnoe und Kaltschweißigkeit.'
+                ftext: 'SIM EINSATZ: Kardiologische Vorerkrankung. Patient klagt über akuten retrosternalen Druck, Dyspnoe und Kaltschweißigkeit.'
             },
             'APOPLEX': {
                 code: '28C01 (Apoplex / CVI - Akutes Defizit)',
@@ -454,6 +457,38 @@
                 geschlecht: 'männlich',
                 bo: 'KÄRNTNER STRASSE 28 / APOTHEKE\n1010 WIEN\n: @ABZ : EINGANGSBEREICH',
                 ftext: 'REANIMATION: Kunde plötzlich bewusstlos umgefallen. Schnappatmung, Pulslos. Laienreanimation und Telefon-CPR laufen!'
+            },
+            'HYPO': {
+                code: '13C01 (Diabetischer Notfall / Hypoglykämie)',
+                name: 'Wimmer, Renate',
+                geb: '11.03.1974',
+                geschlecht: 'weiblich',
+                bo: 'LANDSTRASSER HAUPTSTRASSE 88 / Stiege 2 / Tür 14\n1030 WIEN\n: @ABZ : 2. STOCK, CODE 4455',
+                ftext: 'Bekannte Diabetikerin verwirrt, somnolent und aggressiv. Stark kaltschweißig. Angehörige messen BZ mit 34 mg/dl.'
+            },
+            'ABDOMEN': {
+                code: '01D01 (Akutes Abdomen / Kolik)',
+                name: 'Pichler, Gerald',
+                geb: '29.09.1982',
+                geschlecht: 'männlich',
+                bo: 'ALSER STRASSE 23 / Stiege 1 / Tür 8\n1080 WIEN\n: @ABZ : INNENHOF RECHTS',
+                ftext: 'Perakut aufgetretene, stärkste Bauchschmerzen rechtsseitig. Abwehrspannung bretthart, starkes Erbrechen, blass.'
+            },
+            'INTOX': {
+                code: '23C01 (Intoxikation / Überdosierung)',
+                name: 'Nemeth, Kevin',
+                geb: '14.07.1998',
+                geschlecht: 'männlich',
+                bo: 'SCHWEDENPLATZ 2 / U-BAHN STATION\n1010 WIEN\n: @ABZ : BAHNSTEIG U4',
+                ftext: 'Passanten finden jungen Mann am Boden zusammengesunken. Schwere Bradypnoe (4/min), Zyanose, Pupillen stecknadelkopfgroß.'
+            },
+            'PSYCH': {
+                code: '25B03 (Psychiatrische Krise / Erregung)',
+                name: 'Lang, Susanne',
+                geb: '03.12.1989',
+                geschlecht: 'weiblich',
+                bo: 'THALIASTRASSE 102 / Stiege 3 / Tür 21\n1160 WIEN\n: @ABZ : DACHGESCHOSS',
+                ftext: 'Massive Panikattacke, Hyperventilation mit beginnender Pfötchenstellung. Keine Eigen- oder Fremdgefährdung.'
             }
         };
 
@@ -533,7 +568,7 @@
                 connectWebSocket();
                 setTimeout(() => {
                     if (ws && ws.readyState === WebSocket.OPEN) ws.send(jsonStr);
-                }, 400);
+                }, 300);
             }
 
             if (bc) bc.postMessage(payload);
