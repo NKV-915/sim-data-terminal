@@ -10,6 +10,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dispatch CAD">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="apple-touch-icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,158 +72,159 @@
         .pulse-dot { animation: radar-pulse 2s infinite ease-in-out; }
     </style>
 </head>
-<body class="text-slate-100 h-screen flex flex-col overflow-hidden font-sans select-none">
+<body class="text-slate-100 h-[100dvh] flex flex-col overflow-hidden font-sans select-none">
 
-    <!-- Statusleiste -->
-    <header class="h-14 bg-dispatch-card/90 backdrop-blur border-b border-slate-800 px-5 flex items-center justify-between shrink-0 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div class="relative flex items-center justify-center w-8 h-8 rounded-lg bg-red-950/60 border border-red-500/40">
-                <span class="w-2.5 h-2.5 rounded-full bg-red-500 pulse-dot"></span>
+    <!-- OBERE STATUSLEISTE -->
+    <header class="h-14 bg-dispatch-card/95 backdrop-blur border-b border-slate-800 px-3 md:px-5 flex items-center justify-between shrink-0 shadow-lg z-20">
+        <div class="flex items-center gap-2 md:gap-3">
+            <div class="relative flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-red-950/60 border border-red-500/40 shrink-0">
+                <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 pulse-dot"></span>
             </div>
             <div>
-                <h1 class="font-tech text-lg font-bold tracking-wider text-slate-100 flex items-center gap-2">
-                    DISPATCH CONTROL <span class="text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-500/30 text-sky-400 font-mono">CAD-915</span>
+                <h1 class="font-tech text-sm md:text-lg font-bold tracking-wider text-slate-100 flex items-center gap-1.5 md:gap-2">
+                    DISPATCH <span class="hidden sm:inline">CONTROL</span> <span class="text-[10px] md:text-xs px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/30 text-sky-400 font-mono">CAD-915</span>
                 </h1>
-                <p class="text-[10px] text-slate-400 tracking-wider">EINSATZLEITUNG & SIMULATIONS-STEUERUNG</p>
+                <p class="text-[9px] md:text-[10px] text-slate-400 tracking-wider hidden sm:block">SIMULATIONSEINSATZLEITUNG</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-inner">
-                <span class="text-[11px] font-mono font-semibold text-slate-400">RAUM:</span>
-                <input id="input-room" class="bg-black/60 border border-slate-600 rounded px-2 py-0.5 font-mono text-sm font-bold text-yellow-400 w-24 text-center uppercase tracking-wider focus:border-yellow-400 focus:outline-none" value="SIM1">
-                <button onclick="changeRoom()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">Setzen</button>
+        <div class="flex items-center gap-2 md:gap-4">
+            <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2 py-1 md:px-3 md:py-1.5 rounded-lg shadow-inner">
+                <span class="text-[10px] md:text-[11px] font-mono font-semibold text-slate-400">RAUM:</span>
+                <input id="input-room" class="bg-black/60 border border-slate-600 rounded px-1.5 py-0.5 font-mono text-xs md:text-sm font-bold text-yellow-400 w-16 md:w-20 text-center uppercase tracking-wider focus:border-yellow-400 focus:outline-none" value="SIM1">
+                <button onclick="changeRoom()" class="text-[11px] md:text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">OK</button>
             </div>
 
-            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg">
+            <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2 py-1 md:px-3 md:py-1.5 rounded-lg">
                 <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                <span id="conn-text" class="text-xs font-mono font-medium text-amber-400">VERBINDE...</span>
+                <span id="conn-text" class="text-[10px] md:text-xs font-mono font-medium text-amber-400">OFFLINE</span>
             </div>
 
-            <div class="font-mono text-right pl-2 border-l border-slate-800">
-                <div id="clock-time" class="text-base font-bold text-slate-100 leading-none">12:00:00</div>
+            <div class="font-mono text-right pl-2 border-l border-slate-800 hidden md:block">
+                <div id="clock-time" class="text-sm font-bold text-slate-100 leading-none">12:00:00</div>
                 <div id="clock-date" class="text-[10px] text-slate-400 leading-none mt-1">01.01.2026</div>
             </div>
         </div>
     </header>
 
-    <!-- Split-Layout -->
-    <main class="flex-1 flex gap-4 p-4 overflow-hidden">
+    <!-- SMARTPHONE-TABS -->
+    <nav class="lg:hidden flex bg-slate-900/90 border-b border-slate-800 p-1.5 gap-1 shrink-0 z-10">
+        <button id="tab-btn-scenarios" onclick="switchMobileTab('scenarios')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-sky-950/80 text-sky-400 border border-sky-600/50">
+            <span>📋</span><span>VORLAGEN</span>
+        </button>
+        <button id="tab-btn-editor" onclick="switchMobileTab('editor')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
+            <span>✏️</span><span>EDITOR & SENDEN</span>
+        </button>
+        <button id="tab-btn-history" onclick="switchMobileTab('history')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
+            <span>📜</span><span>LOG (<span id="mobile-log-count">0</span>)</span>
+        </button>
+    </nav>
 
-        <!-- Kompakte Notfall-Vorlagen (12 Szenarien) -->
-        <section class="w-[50%] flex flex-col gap-2.5 overflow-hidden">
-            <div class="flex items-center justify-between">
+    <!-- HAUPTBEREICH -->
+    <main class="flex-1 flex flex-col lg:flex-row gap-3 md:gap-4 p-2 md:p-4 overflow-hidden min-h-0">
+
+        <!-- 1. NOTFALL-VORLAGEN -->
+        <section id="pane-scenarios" class="w-full lg:w-[48%] flex flex-col gap-2 overflow-hidden h-full">
+            <div class="flex items-center justify-between shrink-0 px-1">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
                     <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">12 VORLAGEN</span>
                 </div>
-                <span class="text-[11px] text-slate-400">Klick lädt & berechnet Daten neu</span>
+                <span class="text-[11px] text-slate-400 hidden sm:inline">Klick lädt & öffnet Editor</span>
             </div>
 
-            <div class="flex-1 grid grid-cols-2 gap-2.5 overflow-y-auto pr-1">
-                <!-- 1. ACS -->
-                <button onclick="selectScenario('ACS')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2.5 py-0.5 rounded">10D05</span>
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-1">
+                <button onclick="selectScenario('ACS')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
                 </button>
 
-                <!-- 2. APOPLEX -->
-                <button onclick="selectScenario('APOPLEX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">28C01</span>
+                <button onclick="selectScenario('APOPLEX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
                 </button>
 
-                <!-- 3. ATEMNOT -->
-                <button onclick="selectScenario('ATEMNOT')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2.5 py-0.5 rounded">06D02</span>
+                <button onclick="selectScenario('ATEMNOT')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
                 </button>
 
-                <!-- 4. KRAMPF -->
-                <button onclick="selectScenario('KRAMPF')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2.5 py-0.5 rounded">12D02</span>
+                <button onclick="selectScenario('KRAMPF')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
                 </button>
 
-                <!-- 5. TRAUMA -->
-                <button onclick="selectScenario('TRAUMA')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2.5 py-0.5 rounded">29D02</span>
+                <button onclick="selectScenario('TRAUMA')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / Fußgänger</div>
+                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / PKW vs Fuß</div>
                 </button>
 
-                <!-- 6. STURZ -->
-                <button onclick="selectScenario('STURZ')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2.5 py-0.5 rounded">17D03</span>
+                <button onclick="selectScenario('STURZ')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
                 </button>
 
-                <!-- 7. ANAPHYLAXIE -->
-                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2.5 py-0.5 rounded">02E01</span>
+                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
                         <span class="text-[10px] font-mono text-rose-400 tracking-wider font-semibold">ECHO</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
                 </button>
 
-                <!-- 8. REANIMATION -->
-                <button onclick="selectScenario('CPR')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2.5 py-0.5 rounded animate-pulse">09E01</span>
+                <button onclick="selectScenario('CPR')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2 py-0.5 rounded animate-pulse">09E01</span>
                         <span class="text-[10px] font-mono text-red-400 tracking-wider font-semibold">ECHO</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-red-200 group-hover:text-white">Kreislaufstillstand / CPR</div>
                 </button>
 
-                <!-- 9. HYPOGLYKÄMIE (NEU) -->
-                <button onclick="selectScenario('HYPO')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">13C01</span>
+                <button onclick="selectScenario('HYPO')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">13C01</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Hypoglykämie / Diabetes</div>
                 </button>
 
-                <!-- 10. AKUTES ABDOMEN (NEU) -->
-                <button onclick="selectScenario('ABDOMEN')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2.5 py-0.5 rounded">01D01</span>
+                <button onclick="selectScenario('ABDOMEN')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">01D01</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Akutes Abdomen / Kolik</div>
                 </button>
 
-                <!-- 11. INTOXIKATION (NEU) -->
-                <button onclick="selectScenario('INTOX')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2.5 py-0.5 rounded">23C01</span>
+                <button onclick="selectScenario('INTOX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">23C01</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Intoxikation / Mischintox</div>
                 </button>
 
-                <!-- 12. PSYCHIATRISCHE KRISE (NEU) -->
-                <button onclick="selectScenario('PSYCH')" class="group text-left p-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 transition-all duration-150 flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2.5 py-0.5 rounded">25B03</span>
+                <button onclick="selectScenario('PSYCH')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">25B03</span>
                         <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">BRAVO</span>
                     </div>
                     <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Psychiatrische Krise</div>
@@ -229,49 +232,49 @@
             </div>
         </section>
 
-        <!-- Auftrags-Editor (Rechts bleibt unverändert) -->
-        <section class="w-[50%] flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <!-- 2. AUFTRAGS-EDITOR -->
+        <section id="pane-editor" class="w-full lg:w-[52%] hidden lg:flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-4 shadow-xl overflow-hidden h-full">
+            <div class="flex items-center justify-between pb-2 md:pb-3 border-b border-slate-800 shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
-                    <h2 class="font-tech text-sm font-bold tracking-wider text-slate-100">AUFTRAGS-EDITOR</h2>
+                    <h2 class="font-tech text-xs md:text-sm font-bold tracking-wider text-slate-100">AUFTRAGS-EDITOR</h2>
                 </div>
-                <button onclick="randomizeMissionNumbers()" class="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1">
-                    <span>↻ R/T Neu generieren</span>
+                <button onclick="randomizeMissionNumbers()" class="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1 active:scale-95 transition">
+                    <span>↻ R/T Neu</span>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto pr-1 py-3 flex flex-col gap-3 text-xs">
-                <div class="grid grid-cols-2 gap-3">
+            <div class="flex-1 overflow-y-auto pr-1 py-2 md:py-3 flex flex-col gap-2.5 md:gap-3 text-xs min-h-0">
+                <div class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Auftrag (EN / R-NR)</label>
-                        <input id="edit_rnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-red-400 text-sm focus:border-red-500 focus:outline-none">
+                        <input id="edit_rnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-red-400 text-sm focus:border-red-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Transport (T-NR)</label>
-                        <input id="edit_tnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-slate-200 text-sm focus:border-sky-500 focus:outline-none">
+                        <input id="edit_tnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-slate-200 text-sm focus:border-sky-500 focus:outline-none">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">AMPDS Code & Text</label>
-                        <input id="edit_code" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono font-bold text-yellow-400 focus:border-yellow-500 focus:outline-none">
+                        <input id="edit_code" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-yellow-400 focus:border-yellow-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Patientenname</label>
-                        <input id="edit_name" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-semibold text-slate-100 focus:border-sky-500 focus:outline-none">
+                        <input id="edit_name" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-semibold text-slate-100 focus:border-sky-500 focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geburtsdatum</label>
-                        <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
+                        <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer</label>
-                        <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
+                        <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geschlecht</label>
@@ -285,30 +288,43 @@
 
                 <div>
                     <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Berufungsort (BO / Einsatzadresse)</label>
-                    <textarea id="edit_bo" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
+                    <textarea id="edit_bo" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
                 </div>
 
                 <div>
                     <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Einsatz-Freitext (FTEXT)</label>
-                    <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
+                    <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
                 </div>
             </div>
 
-            <button onclick="dispatchMission()" class="mt-2 w-full py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.99] font-tech font-bold text-base tracking-widest text-white glow-red flex items-center justify-center gap-3 transition-all">
+            <!-- Großer Sende-Button -->
+            <button onclick="dispatchMission()" class="mt-2 w-full py-3.5 md:py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.98] font-tech font-bold text-sm md:text-base tracking-widest text-white glow-red flex items-center justify-center gap-2 md:gap-3 transition shrink-0">
                 <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span>🚨 ALARMIERUNG JETZT SENDEN (<span id="btn-room-tag">SIM1</span>)</span>
             </button>
         </section>
+
+        <!-- 3. SMARTPHONE LOG-ANSICHT -->
+        <section id="pane-history" class="w-full lg:hidden hidden flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 shadow-xl overflow-hidden h-full">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+                <span class="font-tech text-xs font-bold text-slate-300">DISPATCH- & STATUS-PROTOKOLL</span>
+                <span id="mobile-log-counter" class="text-[10px] font-mono text-slate-400">0 Einträge</span>
+            </div>
+            <div id="mobile-dispatch-log" class="flex-1 overflow-y-auto text-xs font-mono space-y-1.5 py-2">
+                <div class="text-slate-500 italic text-center py-4">Noch keine Ereignisse empfangen.</div>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Historie -->
-    <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 flex flex-col justify-between">
+    <!-- UNTERE HISTORIE (DESKTOP / IPAD QUERFORMAT) -->
+    <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 hidden lg:flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-slate-800 pb-1">
-            <span>LETZTE DISPATCH-PROTOKOLLE</span>
-            <span id="log-counter">0 Einsätze übertragen</span>
+            <span>DISPATCH- & TERMINAL-STATUSPROTOKOLL</span>
+            <span id="log-counter">0 Ereignisse registriert</span>
         </div>
         <div id="dispatch-log" class="flex-1 overflow-y-auto text-[11px] font-mono space-y-1 py-1">
-            <div class="text-slate-400 italic">Noch keine Alarmierung in dieser Sitzung ausgelöst.</div>
+            <div class="text-slate-500 italic">Warte auf Alarmierungen oder Statusrückmeldungen des Terminals...</div>
         </div>
     </footer>
 
@@ -317,6 +333,35 @@
         let roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('input-room').value = roomCode;
         document.getElementById('btn-room-tag').innerText = roomCode;
+
+        function switchMobileTab(tab) {
+            const pScen = document.getElementById('pane-scenarios');
+            const pEdit = document.getElementById('pane-editor');
+            const pHist = document.getElementById('pane-history');
+
+            const bScen = document.getElementById('tab-btn-scenarios');
+            const bEdit = document.getElementById('tab-btn-editor');
+            const bHist = document.getElementById('tab-btn-history');
+
+            [bScen, bEdit, bHist].forEach(btn => {
+                btn.className = 'flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent';
+            });
+
+            pScen.classList.add('hidden');
+            pEdit.classList.add('hidden');
+            pHist.classList.add('hidden');
+
+            if (tab === 'scenarios') {
+                pScen.classList.remove('hidden');
+                bScen.className = 'flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-sky-950/80 text-sky-400 border border-sky-600/50';
+            } else if (tab === 'editor') {
+                pEdit.classList.remove('hidden');
+                bEdit.className = 'flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-red-950/80 text-red-400 border border-red-600/50';
+            } else if (tab === 'history') {
+                pHist.classList.remove('hidden');
+                bHist.className = 'flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-amber-950/80 text-amber-400 border border-amber-600/50';
+            }
+        }
 
         let ws = null;
         let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
@@ -328,24 +373,39 @@
 
             ws.onopen = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
-                document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-emerald-400';
+                document.getElementById('conn-text').className = 'text-[10px] md:text-xs font-mono font-medium text-emerald-400';
                 document.getElementById('conn-text').innerText = 'ONLINE';
+            };
+
+            ws.onmessage = async (event) => {
+                let raw = event.data;
+                if (raw instanceof Blob) {
+                    raw = await raw.text();
+                }
+                try {
+                    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    handleIncomingControlMessage(parsed);
+                } catch(e){}
             };
 
             ws.onclose = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
-                document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-amber-400';
+                document.getElementById('conn-text').className = 'text-[10px] md:text-xs font-mono font-medium text-amber-400';
                 document.getElementById('conn-text').innerText = 'OFFLINE';
                 setTimeout(connectWebSocket, 2500);
             };
 
             ws.onerror = () => {
                 document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
-                document.getElementById('conn-text').className = 'text-xs font-mono font-medium text-amber-400';
+                document.getElementById('conn-text').className = 'text-[10px] md:text-xs font-mono font-medium text-amber-400';
                 document.getElementById('conn-text').innerText = 'OFFLINE';
             };
         }
         connectWebSocket();
+
+        if (bc) {
+            bc.onmessage = (e) => handleIncomingControlMessage(e.data);
+        }
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && (!ws || ws.readyState !== WebSocket.OPEN)) {
@@ -392,103 +452,103 @@
             document.getElementById('edit_sv').value = generateSV(geb);
         }
 
-        // 12 Szenarien (inkl. 4 neuer Fälle)
+        // 12 SZENARIEN (ALLE OHNE @ABZ)
         const scenarios = {
             'ACS': {
                 code: '10D05 (Herzinfarkt / Angina Pectoris)',
                 name: 'Bauer, Franz',
                 geb: '12.05.1961',
                 geschlecht: 'männlich',
-                bo: 'HOLLERGASSE 2-6 / Stiege 3 / Tür 12\n1150 WIEN\n: @ABZ : CODE #1244',
-                ftext: 'SIM EINSATZ: Kardiologische Vorerkrankung. Patient klagt über akuten retrosternalen Druck, Dyspnoe und Kaltschweißigkeit.'
+                bo: 'HOLLERGASSE 10 / Stiege 3 / Tür 12\n1150 WIEN\nCODE #1244',
+                ftext: 'klagt über Brustschmerz, Atemnot, kaltschweißig lt. Beruferin'
             },
             'APOPLEX': {
                 code: '28C01 (Apoplex / CVI - Akutes Defizit)',
                 name: 'Kowalski, Maria',
                 geb: '23.08.1952',
                 geschlecht: 'weiblich',
-                bo: 'MARIAHILFER STRASSE 142 / Stiege 1 / Tür 20\n1070 WIEN\n: @ABZ : LIFT VORHANDEN',
-                ftext: 'FAST-Test positiv: Hängender Mundwinkel rechts, Sprachstörung akut seit 25 Minuten aufgetreten. Patientin wach.'
+                bo: 'MARIAHILFER STRASSE 142 / Stiege 1 / Tür 20\n1070 WIEN\nLIFT VORHANDEN',
+                ftext: 'hängender Mundwinkel rechts, seit ca. 1/2 Stunde'
             },
             'ATEMNOT': {
                 code: '06D02 (Schwere Atemnot / COPD)',
                 name: 'Gruber, Johann',
                 geb: '14.11.1968',
                 geschlecht: 'männlich',
-                bo: 'ENGELMANNSTRASSE 18 / Tür 5\n1160 WIEN\n: @ABZ : 1. STOCK RECHTS',
-                ftext: 'Zunehmende Atemnot seit dem Morgen. Bekanntes schweres Asthma und COPD. Patient sitzt aufrecht, Zyanose sichtbar.'
+                bo: 'ENGELMANNSTRASSE 18 / Tür 5\n1160 WIEN\n1. STOCK RECHTS',
+                ftext: 'Atemnot seit dem Morgen, bek. COPD'
             },
             'KRAMPF': {
                 code: '12D02 (Krampfanfall / Status)',
                 name: 'Eder, Lukas',
                 geb: '05.02.1995',
                 geschlecht: 'männlich',
-                bo: 'PRATERSTERN 1 / BAHNHOFSHALLE\n1020 WIEN\n: @ABZ : BEIM INFOSCHALTER',
-                ftext: 'Generalisierter tonisch-klonischer Krampfanfall auf offener Straße. Mehrere Anfälle hintereinander, blutet aus dem Mund.'
+                bo: 'PRATERSTERN 1 / BAHNHOFSHALLE\n1020 WIEN\nBEIM INFOSCHALTER',
+                ftext: 'Krampfanfall, blutet aus dem Mund'
             },
             'TRAUMA': {
                 code: '29D02 (Verkehrsunfall / Fußgänger)',
                 name: 'Novak, Sophie',
                 geb: '19.04.2002',
                 geschlecht: 'weiblich',
-                bo: 'WIEDNER GÜRTEL / PRINZ-EUGEN-STRASSE\n1040 WIEN\n: @ABZ : KREUZUNGSBEREICH',
-                ftext: 'Fußgängerin von PKW erfasst. Patientin somnolent am Straßenrand. Verdacht auf Schädel-Hirn-Trauma und Femurfraktur.'
+                bo: 'WIEDNER GÜRTEL / PRINZ-EUGEN-STRASSE\n1040 WIEN\nKREUZUNGSBEREICH',
+                ftext: 'Fußgängerin gegen PKW, Pat. reagiert nicht normal'
             },
             'STURZ': {
                 code: '17D03 (Sturz aus großer Höhe)',
                 name: 'Horvath, Peter',
                 geb: '30.06.1984',
                 geschlecht: 'männlich',
-                bo: 'HANDELSKAI 94 / BAUSTELLE TOR 3\n1200 WIEN\n: @ABZ : ZUFAHRT ÜBER KAIBRÜCKE',
-                ftext: 'Bauarbeiter aus ca. 4,5m Höhe vom Arbeitsgerüst abgestürzt. Starke Schmerzen im Becken- und LWS-Bereich. Immobilisation nötig.'
+                bo: 'HANDELSKAI 94 / BAUSTELLE TOR 3\n1200 WIEN\nZUFAHRT ÜBER KAIBRÜCKE',
+                ftext: 'aus ca. 4,5m Höhe vom Gerüst abgestürzt, Schmerzen im Becken- und LWS-Bereich'
             },
             'ANAPHYLAXIE': {
                 code: '02E01 (Allergische Reaktion / Schock)',
                 name: 'Sommer, Katharina',
                 geb: '08.09.1993',
                 geschlecht: 'weiblich',
-                bo: 'SCHÖNBRUNNER SCHLOSSPARK / GLASHAUS\n1130 WIEN\n: @ABZ : WEGMARKE 14',
-                ftext: 'Wespenstich im Halsbereich. Massives Quincke-Ödem, inspiratorischer Stridor, Urtikaria am gesamten Körper. RR 75/40.'
+                bo: 'SCHÖNBRUNNER SCHLOSSPARK / GLASHAUS\n1130 WIEN\nWEGMARKE 14',
+                ftext: 'Wespenstich im Halsbereich, Schwindel, Atemnot'
             },
             'CPR': {
                 code: '09E01 (Kreislaufstillstand / Reanimation)',
                 name: 'Wagner, Herbert',
                 geb: '17.12.1957',
                 geschlecht: 'männlich',
-                bo: 'KÄRNTNER STRASSE 28 / APOTHEKE\n1010 WIEN\n: @ABZ : EINGANGSBEREICH',
-                ftext: 'REANIMATION: Kunde plötzlich bewusstlos umgefallen. Schnappatmung, Pulslos. Laienreanimation und Telefon-CPR laufen!'
+                bo: 'KÄRNTNER STRASSE 28 / APOTHEKE\n1010 WIEN\nEINGANGSBEREICH',
+                ftext: 'plötzlich umgefallen, Laienreanimation und Telefon-CPR laufen'
             },
             'HYPO': {
                 code: '13C01 (Diabetischer Notfall / Hypoglykämie)',
                 name: 'Wimmer, Renate',
                 geb: '11.03.1974',
                 geschlecht: 'weiblich',
-                bo: 'LANDSTRASSER HAUPTSTRASSE 88 / Stiege 2 / Tür 14\n1030 WIEN\n: @ABZ : 2. STOCK, CODE 4455',
-                ftext: 'Bekannte Diabetikerin verwirrt, somnolent und aggressiv. Stark kaltschweißig. Angehörige messen BZ mit 34 mg/dl.'
+                bo: 'LANDSTRASSER HAUPTSTRASSE 88 / Stiege 2 / Tür 14\n1030 WIEN\n2. STOCK, CODE 4455',
+                ftext: 'bek. Diabetikerin, aggressiv'
             },
             'ABDOMEN': {
                 code: '01D01 (Akutes Abdomen / Kolik)',
                 name: 'Pichler, Gerald',
                 geb: '29.09.1982',
                 geschlecht: 'männlich',
-                bo: 'ALSER STRASSE 23 / Stiege 1 / Tür 8\n1080 WIEN\n: @ABZ : INNENHOF RECHTS',
-                ftext: 'Perakut aufgetretene, stärkste Bauchschmerzen rechtsseitig. Abwehrspannung bretthart, starkes Erbrechen, blass.'
+                bo: 'ALSER STRASSE 23 / Stiege 1 / Tür 8\n1080 WIEN\nINNENHOF RECHTS',
+                ftext: 'starke Bauchschmerzen rechts, Erbrechen'
             },
             'INTOX': {
                 code: '23C01 (Intoxikation / Überdosierung)',
                 name: 'Nemeth, Kevin',
                 geb: '14.07.1998',
                 geschlecht: 'männlich',
-                bo: 'SCHWEDENPLATZ 2 / U-BAHN STATION\n1010 WIEN\n: @ABZ : BAHNSTEIG U4',
-                ftext: 'Passanten finden jungen Mann am Boden zusammengesunken. Schwere Bradypnoe (4/min), Zyanose, Pupillen stecknadelkopfgroß.'
+                bo: 'SCHWEDENPLATZ 2 / U-BAHN STATION\n1010 WIEN\nBAHNSTEIG U4',
+                ftext: 'am Boden zusammengesunken, blaue Lippen'
             },
             'PSYCH': {
                 code: '25B03 (Psychiatrische Krise / Erregung)',
                 name: 'Lang, Susanne',
                 geb: '03.12.1989',
                 geschlecht: 'weiblich',
-                bo: 'THALIASTRASSE 102 / Stiege 3 / Tür 21\n1160 WIEN\n: @ABZ : DACHGESCHOSS',
-                ftext: 'Massive Panikattacke, Hyperventilation mit beginnender Pfötchenstellung. Keine Eigen- oder Fremdgefährdung.'
+                bo: 'THALIASTRASSE 102 / Stiege 3 / Tür 21\n1160 WIEN\nDACHGESCHOSS',
+                ftext: 'lt. Patientin Panikattacke'
             }
         };
 
@@ -504,6 +564,10 @@
             document.getElementById('edit_bo').value = sc.bo;
             document.getElementById('edit_ftext').value = sc.ftext;
             recalcSV();
+
+            if (window.innerWidth < 1024) {
+                switchMobileTab('editor');
+            }
         }
 
         let audioCtx = null;
@@ -534,7 +598,66 @@
             } catch(e){}
         }
 
-        let dispatchCount = 0;
+        let totalEvents = 0;
+
+        function addLogEntry(htmlContent) {
+            totalEvents++;
+            document.getElementById('log-counter').innerText = `${totalEvents} Ereignisse registriert`;
+            document.getElementById('mobile-log-count').innerText = totalEvents;
+            document.getElementById('mobile-log-counter').innerText = `${totalEvents} Einträge`;
+
+            const deskLog = document.getElementById('dispatch-log');
+            if (totalEvents === 1) deskLog.innerHTML = '';
+            deskLog.insertAdjacentHTML('afterbegin', htmlContent);
+
+            const mobLog = document.getElementById('mobile-dispatch-log');
+            if (totalEvents === 1) mobLog.innerHTML = '';
+            mobLog.insertAdjacentHTML('afterbegin', htmlContent);
+        }
+
+        function handleIncomingControlMessage(data) {
+            if (!data || data.type !== 'STATUS_UPDATE') return;
+
+            const time = data.timestamp || new Date().toLocaleTimeString('de-DE');
+            const unit = data.unit || 'SDT';
+            const rNr = data.rNummer || '-';
+            const status = data.status || '';
+            const extra = data.extra ? ` &bull; <span class="text-sky-300 font-semibold">${data.extra}</span>` : '';
+
+            let badgeColor = 'bg-slate-700 text-slate-200 border-slate-600';
+            let borderColor = 'border-slate-500';
+
+            if (status.includes('übernommen')) {
+                badgeColor = 'bg-yellow-950 text-yellow-400 border-yellow-700/60';
+                borderColor = 'border-yellow-500';
+            } else if (status.includes('Berufungsort')) {
+                badgeColor = 'bg-blue-950 text-blue-300 border-blue-700/60';
+                borderColor = 'border-blue-500';
+            } else if (status.includes('Abgabeort')) {
+                badgeColor = 'bg-emerald-950 text-emerald-300 border-emerald-700/60';
+                borderColor = 'border-emerald-500';
+            } else if (status.includes('Zielort gebucht')) {
+                badgeColor = 'bg-sky-950 text-cyan-300 border-cyan-700/60';
+                borderColor = 'border-cyan-400';
+            } else if (status.includes('beendet')) {
+                badgeColor = 'bg-slate-800 text-slate-300 border-slate-600';
+                borderColor = 'border-slate-400';
+            }
+
+            const entryHtml = `
+                <div class="flex items-center justify-between bg-slate-900/70 border-l-2 ${borderColor} px-2.5 py-1.5 rounded text-slate-300 animate-fadeIn">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-slate-400 font-bold">[${time}]</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${unit}</span>
+                        <span class="text-yellow-400 font-bold">${rNr}:</span>
+                        <span class="text-slate-100 font-bold">${status}</span>
+                        <span class="text-xs text-slate-300 truncate">${extra}</span>
+                    </div>
+                    <div class="text-[10px] font-mono text-emerald-400 shrink-0 ml-2">✓ Terminal</div>
+                </div>
+            `;
+            addLogEntry(entryHtml);
+        }
 
         function dispatchMission() {
             const now = new Date();
@@ -575,24 +698,18 @@
 
             playAlertTone();
 
-            dispatchCount++;
-            document.getElementById('log-counter').innerText = `${dispatchCount} Einsätze übertragen`;
-
-            const logBox = document.getElementById('dispatch-log');
-            if (dispatchCount === 1) logBox.innerHTML = '';
-
-            const logRow = document.createElement('div');
-            logRow.className = 'flex items-center justify-between bg-slate-900/60 border-l-2 border-red-500 px-2 py-1 rounded text-slate-300';
-            logRow.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="text-red-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
-                    <span class="text-yellow-400 font-bold">${payload.rNummer}</span>
-                    <span class="text-slate-400">${payload.code.split(' ')[0]}</span>
-                    <span class="text-slate-200">${payload.patientName}</span>
+            const logHtml = `
+                <div class="flex items-center justify-between bg-slate-900/60 border-l-2 border-red-500 px-2.5 py-1.5 rounded text-slate-300">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-red-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-400 border border-red-700/60">DISPATCH</span>
+                        <span class="text-yellow-400 font-bold">${payload.rNummer}</span>
+                        <span class="text-slate-200 truncate font-semibold">${payload.patientName} (${payload.code.split(' ')[0]})</span>
+                    </div>
+                    <div class="text-slate-400 text-[10px] shrink-0 ml-2">✓ Gesendet</div>
                 </div>
-                <div class="text-slate-400 text-[10px]">RAUM: ${roomCode} ✓</div>
             `;
-            logBox.prepend(logRow);
+            addLogEntry(logHtml);
         }
 
         selectScenario('ACS');

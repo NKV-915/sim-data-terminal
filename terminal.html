@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sim Data Terminal</title>
 
-    <!-- iPadOS / iOS PWA Einstellungen -->
+    <!-- iPadOS / iOS PWA Einstellungen & Icons -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sim Terminal">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000080'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif'>🚑</text></svg>">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="apple-touch-icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -559,7 +560,6 @@
         sndAlarm.loop = true;
         const sndClick = new Audio('mdt_klick.mp3');
 
-        // iOS Audio Unlock: Berechtigt Audiowiedergabe bei der ersten Touch-Interaktion
         function unlockAudioOnInteraction() {
             sndAlarm.play().then(() => {
                 sndAlarm.pause();
@@ -577,7 +577,6 @@
         window.addEventListener('click', unlockAudioOnInteraction);
         window.addEventListener('touchstart', unlockAudioOnInteraction);
 
-        // Klicksound wird ausschließlich bei Statusänderungen aufgerufen
         function playStatusClickSound() {
             try {
                 sndClick.currentTime = 0;
@@ -615,6 +614,26 @@
         let lastConnectedUrl = '';
         let isOnline = false;
         let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
+
+        function sendStatusFeedback(statusText, extraInfo = '') {
+            const currentR = currentMissionPayload ? (currentMissionPayload.rNummer || currentMissionPayload.r_nr) : (document.getElementById('input-en').value || '-');
+            const payload = {
+                type: 'STATUS_UPDATE',
+                status: statusText,
+                rNummer: currentR,
+                extra: extraInfo,
+                unit: 'SDT',
+                timestamp: new Date().toLocaleTimeString('de-DE')
+            };
+            const jsonStr = JSON.stringify(payload);
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(jsonStr);
+            }
+            if (bc) {
+                bc.postMessage(payload);
+            }
+        }
 
         function setELSStatus(online) {
             isOnline = online;
@@ -742,7 +761,7 @@
                 currentMissionPayload = {
                     rNummer: 'R' + Math.floor(Math.random() * 900000 + 100000),
                     timestamp: now.toLocaleString('de-DE'),
-                    bo: 'HOLLERGASSE 2-6///\n1150 WIEN\n: @ABZ : TEST',
+                    bo: 'HOLLERGASSE 2-6///\n1150 WIEN\nTEST',
                     code: '10D05 (Herzinfarkt / Vorerkrankung)',
                     ftext: 'TESTEINSATZ SIM FREITEXT',
                     patientName: 'Max Mustermann',
@@ -796,6 +815,8 @@
             btnZumBo.disabled = false;
             document.getElementById('svg-zum-bo').setAttribute('fill', '#0055b3');
             switchTab('daten');
+
+            sendStatusFeedback('Einsatz übernommen');
         }
 
         let currentStep = -1;
@@ -803,7 +824,6 @@
         let selectedHospital = null;
 
         function handleWorkflowStep(step) {
-            // Nur bei Statuswechsel Klicksound abspielen
             playStatusClickSound();
 
             const inputStatus = document.getElementById('input-status');
@@ -825,6 +845,7 @@
                 svgZumBo.setAttribute('fill', '#888888');
                 btnAmBo.disabled = false;
                 svgAmBo.setAttribute('fill', '#0055b3');
+                sendStatusFeedback('Zum Berufungsort');
             } else if (step === 2 && currentStep === 1) {
                 currentStep = 2;
                 inputStatus.value = "Am Berufungsort";
@@ -834,6 +855,7 @@
                     btnZumAo.disabled = false;
                     svgZumAo.setAttribute('fill', '#84c225');
                 }
+                sendStatusFeedback('Am Berufungsort');
             } else if (step === 3 && currentStep === 2) {
                 currentStep = 3;
                 inputStatus.value = "Zum Abgabeort";
@@ -841,6 +863,7 @@
                 svgZumAo.setAttribute('fill', '#888888');
                 btnAmAo.disabled = false;
                 svgAmAo.setAttribute('fill', '#84c225');
+                sendStatusFeedback('Zum Abgabeort', document.getElementById('input-p-ziel').value);
             } else if (step === 4 && currentStep === 3) {
                 currentStep = 4;
                 inputStatus.value = "Am Abgabeort";
@@ -849,6 +872,7 @@
                 btnFinishAuftrag.disabled = false;
                 iconFinishAuftrag.classList.remove('text-gray-400');
                 iconFinishAuftrag.classList.add('text-[#e24a2b]');
+                sendStatusFeedback('Am Abgabeort', document.getElementById('input-p-ziel').value);
             }
         }
 
@@ -894,7 +918,7 @@
             switchTab('patient');
         }
 
-        function selectCategory(el, catName) {
+        function selectCategory(el) {
             document.querySelectorAll('.category-row').forEach(r => r.classList.remove('selected'));
             el.classList.add('selected');
         }
@@ -926,7 +950,8 @@
             if (!selectedHospital) return;
 
             bookedHospital = selectedHospital;
-            document.getElementById('input-p-ziel').value = `${bookedHospital.code} - ${bookedHospital.name}`;
+            const hospitalText = `${bookedHospital.code} - ${bookedHospital.name}`;
+            document.getElementById('input-p-ziel').value = hospitalText;
             closeBettenOverview();
 
             if (currentStep >= 3) {
@@ -942,6 +967,8 @@
                 document.getElementById('btn-zum-ao').disabled = false;
                 document.getElementById('svg-zum-ao').setAttribute('fill', '#84c225');
             }
+
+            sendStatusFeedback('Zielort gebucht', hospitalText);
         }
 
         function openFinishModal() { 
@@ -956,6 +983,8 @@
 
         function confirmFinishAuftrag() {
             closeFinishModal();
+            sendStatusFeedback('Auftrag beendet');
+
             document.querySelectorAll('input, textarea').forEach(i => i.value = '');
             document.getElementById('patient-tab-title').textContent = '';
             currentStep = -1;
