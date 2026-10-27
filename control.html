@@ -58,6 +58,7 @@
 
         .glow-red { box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.45); }
         .glow-blue { box-shadow: 0 0 20px -3px rgba(56, 189, 248, 0.35); }
+        .glow-green { box-shadow: 0 0 20px -3px rgba(34, 197, 94, 0.35); }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -70,36 +71,54 @@
             100% { transform: scale(0.95); opacity: 0.9; }
         }
         .pulse-dot { animation: radar-pulse 2s infinite ease-in-out; }
+
+        @keyframes radio-wave {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        .btn-radio-playing {
+            animation: radio-wave 1.5s infinite;
+            border-color: #38bdf8 !important;
+            background-color: rgba(2, 132, 199, 0.25) !important;
+        }
     </style>
 </head>
 <body class="text-slate-100 h-[100dvh] flex flex-col overflow-hidden font-sans select-none">
 
-    <!-- OBERE STATUSLEISTE -->
+    <!-- OBERE STATUSLEISTE MIT HAUPTREITER-UMSCHALTUNG -->
     <header class="h-14 bg-dispatch-card/95 backdrop-blur border-b border-slate-800 px-3 md:px-5 flex items-center justify-between shrink-0 shadow-lg z-20">
-        <div class="flex items-center gap-2 md:gap-3">
+        <div class="flex items-center gap-3">
             <div class="relative flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-red-950/60 border border-red-500/40 shrink-0">
                 <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 pulse-dot"></span>
             </div>
-            <div>
-                <h1 class="font-tech text-sm md:text-lg font-bold tracking-wider text-slate-100 flex items-center gap-1.5 md:gap-2">
-                    DISPATCH <span class="hidden sm:inline">CONTROL</span> <span class="text-[10px] md:text-xs px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/30 text-sky-400 font-mono">CAD-915</span>
-                </h1>
-                <p class="text-[9px] md:text-[10px] text-slate-400 tracking-wider hidden sm:block">SIMULATIONSEINSATZLEITUNG</p>
+            
+            <!-- Haupt-Reiter: Alarmierung vs. Funk -->
+            <div class="flex bg-slate-900 border border-slate-700/80 p-0.5 rounded-lg shadow-inner">
+                <button id="main-nav-alarm" onclick="switchMainTab('alarm')" class="px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 bg-red-600 text-white shadow">
+                    <span>🚨</span><span>ALARMIERUNG</span>
+                </button>
+                <button id="main-nav-radio" onclick="switchMainTab('radio')" class="px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                    <span>📻</span><span>FUNK</span>
+                </button>
             </div>
         </div>
 
         <div class="flex items-center gap-2 md:gap-4">
+            <!-- Raum-Wähler -->
             <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2 py-1 md:px-3 md:py-1.5 rounded-lg shadow-inner">
                 <span class="text-[10px] md:text-[11px] font-mono font-semibold text-slate-400">RAUM:</span>
                 <input id="input-room" class="bg-black/60 border border-slate-600 rounded px-1.5 py-0.5 font-mono text-xs md:text-sm font-bold text-yellow-400 w-16 md:w-20 text-center uppercase tracking-wider focus:border-yellow-400 focus:outline-none" value="SIM1">
                 <button onclick="changeRoom()" class="text-[11px] md:text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">OK</button>
             </div>
 
+            <!-- Verbindung -->
             <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2 py-1 md:px-3 md:py-1.5 rounded-lg">
                 <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                 <span id="conn-text" class="text-[10px] md:text-xs font-mono font-medium text-amber-400">OFFLINE</span>
             </div>
 
+            <!-- Uhrzeit -->
             <div class="font-mono text-right pl-2 border-l border-slate-800 hidden md:block">
                 <div id="clock-time" class="text-sm font-bold text-slate-100 leading-none">12:00:00</div>
                 <div id="clock-date" class="text-[10px] text-slate-400 leading-none mt-1">01.01.2026</div>
@@ -107,233 +126,439 @@
         </div>
     </header>
 
-    <!-- SMARTPHONE-TABS -->
-    <nav class="lg:hidden flex bg-slate-900/90 border-b border-slate-800 p-1.5 gap-1 shrink-0 z-10">
-        <button id="tab-btn-scenarios" onclick="switchMobileTab('scenarios')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-sky-950/80 text-sky-400 border border-sky-600/50">
-            <span>📋</span><span>VORLAGEN</span>
-        </button>
-        <button id="tab-btn-editor" onclick="switchMobileTab('editor')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
-            <span>✏️</span><span>EDITOR & SENDEN</span>
-        </button>
-        <button id="tab-btn-history" onclick="switchMobileTab('history')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
-            <span>📜</span><span>LOG (<span id="mobile-log-count">0</span>)</span>
-        </button>
-    </nav>
-
-    <!-- HAUPTBEREICH -->
-    <main class="flex-1 flex flex-col lg:flex-row gap-3 md:gap-4 p-2 md:p-4 overflow-hidden min-h-0">
-
-        <!-- 1. NOTFALL-VORLAGEN -->
-        <section id="pane-scenarios" class="w-full lg:w-[48%] flex flex-col gap-2 overflow-hidden h-full">
-            <div class="flex items-center justify-between shrink-0 px-1">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">12 VORLAGEN</span>
-                </div>
-                <span class="text-[11px] text-slate-400 hidden sm:inline">Klick lädt & öffnet Editor</span>
-            </div>
-
-            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-1">
-                <button onclick="selectScenario('ACS')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
-                </button>
-
-                <button onclick="selectScenario('APOPLEX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
-                </button>
-
-                <button onclick="selectScenario('ATEMNOT')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
-                </button>
-
-                <button onclick="selectScenario('KRAMPF')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
-                </button>
-
-                <button onclick="selectScenario('TRAUMA')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / PKW vs Fuß</div>
-                </button>
-
-                <button onclick="selectScenario('STURZ')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
-                </button>
-
-                <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
-                        <span class="text-[10px] font-mono text-rose-400 tracking-wider font-semibold">ECHO</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
-                </button>
-
-                <button onclick="selectScenario('CPR')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2 py-0.5 rounded animate-pulse">09E01</span>
-                        <span class="text-[10px] font-mono text-red-400 tracking-wider font-semibold">ECHO</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-red-200 group-hover:text-white">Kreislaufstillstand / CPR</div>
-                </button>
-
-                <button onclick="selectScenario('HYPO')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">13C01</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Hypoglykämie / Diabetes</div>
-                </button>
-
-                <button onclick="selectScenario('ABDOMEN')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">01D01</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Akutes Abdomen / Kolik</div>
-                </button>
-
-                <button onclick="selectScenario('INTOX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">23C01</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Intoxikation / Mischintox</div>
-                </button>
-
-                <button onclick="selectScenario('PSYCH')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">25B03</span>
-                        <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">BRAVO</span>
-                    </div>
-                    <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Psychiatrische Krise</div>
-                </button>
-            </div>
-        </section>
-
-        <!-- 2. AUFTRAGS-EDITOR -->
-        <section id="pane-editor" class="w-full lg:w-[52%] hidden lg:flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-4 shadow-xl overflow-hidden h-full">
-            <div class="flex items-center justify-between pb-2 md:pb-3 border-b border-slate-800 shrink-0">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
-                    <h2 class="font-tech text-xs md:text-sm font-bold tracking-wider text-slate-100">AUFTRAGS-EDITOR</h2>
-                </div>
-                <button onclick="randomizeMissionNumbers()" class="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1 active:scale-95 transition">
-                    <span>↻ R/T Neu</span>
-                </button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto pr-1 py-2 md:py-3 flex flex-col gap-2.5 md:gap-3 text-xs min-h-0">
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Auftrag (EN / R-NR)</label>
-                        <input id="edit_rnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-red-400 text-sm focus:border-red-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Transport (T-NR)</label>
-                        <input id="edit_tnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-slate-200 text-sm focus:border-sky-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">AMPDS Code & Text</label>
-                        <input id="edit_code" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-yellow-400 focus:border-yellow-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Patientenname</label>
-                        <input id="edit_name" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-semibold text-slate-100 focus:border-sky-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geburtsdatum</label>
-                        <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer</label>
-                        <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geschlecht</label>
-                        <select id="edit_geschl" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-medium text-slate-200 focus:border-sky-500 focus:outline-none">
-                            <option value="männlich">männlich</option>
-                            <option value="weiblich">weiblich</option>
-                            <option value="divers">divers</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Berufungsort (BO / Einsatzadresse)</label>
-                    <textarea id="edit_bo" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
-                </div>
-
-                <div>
-                    <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Einsatz-Freitext (FTEXT)</label>
-                    <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
-                </div>
-            </div>
-
-            <!-- Großer Sende-Button -->
-            <button onclick="dispatchMission()" class="mt-2 w-full py-3.5 md:py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.98] font-tech font-bold text-sm md:text-base tracking-widest text-white glow-red flex items-center justify-center gap-2 md:gap-3 transition shrink-0">
-                <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                <span>🚨 ALARMIERUNG JETZT SENDEN (<span id="btn-room-tag">SIM1</span>)</span>
+    <!-- ============================================================== -->
+    <!-- REITER 1: ALARMIERUNG (BESTEHENDE ANSICHT)                      -->
+    <!-- ============================================================== -->
+    <div id="container-tab-alarm" class="flex-1 flex flex-col overflow-hidden min-h-0">
+        
+        <!-- Smartphone-Tabs für Alarm-Unterbereiche -->
+        <nav class="lg:hidden flex bg-slate-900/90 border-b border-slate-800 p-1.5 gap-1 shrink-0 z-10">
+            <button id="tab-btn-scenarios" onclick="switchMobileTab('scenarios')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-sky-950/80 text-sky-400 border border-sky-600/50">
+                <span>📋</span><span>VORLAGEN</span>
             </button>
-        </section>
+            <button id="tab-btn-editor" onclick="switchMobileTab('editor')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
+                <span>✏️</span><span>EDITOR & SENDEN</span>
+            </button>
+            <button id="tab-btn-history" onclick="switchMobileTab('history')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-slate-800/60 text-slate-400 border border-transparent">
+                <span>📜</span><span>LOG (<span id="mobile-log-count">0</span>)</span>
+            </button>
+        </nav>
 
-        <!-- 3. SMARTPHONE LOG-ANSICHT -->
-        <section id="pane-history" class="w-full lg:hidden hidden flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 shadow-xl overflow-hidden h-full">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
-                <span class="font-tech text-xs font-bold text-slate-300">DISPATCH- & STATUS-PROTOKOLL</span>
-                <span id="mobile-log-counter" class="text-[10px] font-mono text-slate-400">0 Einträge</span>
+        <!-- Hauptbereich Alarmierungen -->
+        <main class="flex-1 flex flex-col lg:flex-row gap-3 md:gap-4 p-2 md:p-4 overflow-hidden min-h-0">
+
+            <!-- 1. Notfall-Vorlagen -->
+            <section id="pane-scenarios" class="w-full lg:w-[48%] flex flex-col gap-2 overflow-hidden h-full">
+                <div class="flex items-center justify-between shrink-0 px-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">12 VORLAGEN</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 hidden sm:inline">Klick lädt & öffnet Editor</span>
+                </div>
+
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-1">
+                    <button onclick="selectScenario('ACS')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">10D05</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Thoraxschmerz / ACS</div>
+                    </button>
+
+                    <button onclick="selectScenario('APOPLEX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">28C01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Apoplex / Schlaganfall</div>
+                    </button>
+
+                    <button onclick="selectScenario('ATEMNOT')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">06D02</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Schwere Dyspnoe</div>
+                    </button>
+
+                    <button onclick="selectScenario('KRAMPF')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-purple-900/40 hover:border-purple-500 hover:bg-purple-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-purple-400 bg-purple-950/70 border border-purple-800/60 px-2 py-0.5 rounded">12D02</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-purple-300">Status Epilepticus</div>
+                    </button>
+
+                    <button onclick="selectScenario('TRAUMA')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-amber-900/40 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/70 border border-amber-800/60 px-2 py-0.5 rounded">29D02</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-amber-300">Verkehrsunfall / Fußgänger</div>
+                    </button>
+
+                    <button onclick="selectScenario('STURZ')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-yellow-900/40 hover:border-yellow-500 hover:bg-yellow-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-yellow-400 bg-yellow-950/70 border border-yellow-800/60 px-2 py-0.5 rounded">17D03</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-yellow-300">Sturz aus Höhe (>4m)</div>
+                    </button>
+
+                    <button onclick="selectScenario('ANAPHYLAXIE')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-rose-900/40 hover:border-rose-500 hover:bg-rose-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-rose-400 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded">02E01</span>
+                            <span class="text-[10px] font-mono text-rose-400 tracking-wider font-semibold">ECHO</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-rose-300">Anaphylaxie Grad III</div>
+                    </button>
+
+                    <button onclick="selectScenario('CPR')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-600/60 hover:border-red-400 hover:bg-red-950/30 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-red-300 bg-red-900 border border-red-500 px-2.5 py-0.5 rounded animate-pulse">09E01</span>
+                            <span class="text-[10px] font-mono text-red-400 tracking-wider font-semibold">ECHO</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-red-200 group-hover:text-white">Kreislaufstillstand / CPR</div>
+                    </button>
+
+                    <button onclick="selectScenario('HYPO')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">13C01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Hypoglykämie / Diabetes</div>
+                    </button>
+
+                    <button onclick="selectScenario('ABDOMEN')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-red-900/40 hover:border-red-500 hover:bg-red-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-2 py-0.5 rounded">01D01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">DELTA</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-red-300">Akutes Abdomen / Kolik</div>
+                    </button>
+
+                    <button onclick="selectScenario('INTOX')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">23C01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Intoxikation / Mischintox</div>
+                    </button>
+
+                    <button onclick="selectScenario('PSYCH')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">25B03</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">BRAVO</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Psychiatrische Krise</div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 2. Auftrags-Editor -->
+            <section id="pane-editor" class="w-full lg:w-[52%] hidden lg:flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-4 shadow-xl overflow-hidden h-full">
+                <div class="flex items-center justify-between pb-2 md:pb-3 border-b border-slate-800 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>
+                        <h2 class="font-tech text-xs md:text-sm font-bold tracking-wider text-slate-100">AUFTRAGS-EDITOR</h2>
+                    </div>
+                    <button onclick="randomizeMissionNumbers()" class="text-[11px] font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1 active:scale-95 transition">
+                        <span>↻ R/T Neu</span>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-1 py-2 md:py-3 flex flex-col gap-2.5 md:gap-3 text-xs min-h-0">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Auftrag (EN / R-NR)</label>
+                            <input id="edit_rnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-red-400 text-sm focus:border-red-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Transport (T-NR)</label>
+                            <input id="edit_tnr" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-slate-200 text-sm focus:border-sky-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">AMPDS Code & Text</label>
+                            <input id="edit_code" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-mono font-bold text-yellow-400 focus:border-yellow-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Patientenname</label>
+                            <input id="edit_name" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 md:py-2 font-semibold text-slate-100 focus:border-sky-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geburtsdatum</label>
+                            <input id="edit_geb" oninput="recalcSV()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-mono text-slate-200 focus:border-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">SV-Nummer</label>
+                            <input id="edit_sv" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Geschlecht</label>
+                            <select id="edit_geschl" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1.5 font-medium text-slate-200 focus:border-sky-500 focus:outline-none">
+                                <option value="männlich">männlich</option>
+                                <option value="weiblich">weiblich</option>
+                                <option value="divers">divers</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Berufungsort (BO / Einsatzadresse)</label>
+                        <textarea id="edit_bo" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-sky-200 resize-none focus:border-sky-500 focus:outline-none leading-relaxed"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="font-mono text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Einsatz-Freitext (FTEXT)</label>
+                        <textarea id="edit_ftext" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-slate-300 resize-none focus:border-sky-500 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <button onclick="dispatchMission()" class="mt-2 w-full py-3.5 md:py-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.98] font-tech font-bold text-sm md:text-base tracking-widest text-white glow-red flex items-center justify-center gap-2 md:gap-3 transition shrink-0">
+                    <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span>🚨 ALARMIERUNG JETZT SENDEN (<span id="btn-room-tag">SIM1</span>)</span>
+                </button>
+            </section>
+
+            <!-- 3. Smartphone Log-Ansicht -->
+            <section id="pane-history" class="w-full lg:hidden hidden flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 shadow-xl overflow-hidden h-full">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+                    <span class="font-tech text-xs font-bold text-slate-300">DISPATCH- & STATUS-PROTOKOLL</span>
+                    <span id="mobile-log-counter" class="text-[10px] font-mono text-slate-400">0 Einträge</span>
+                </div>
+                <div id="mobile-dispatch-log" class="flex-1 overflow-y-auto text-xs font-mono space-y-1.5 py-2">
+                    <div class="text-slate-500 italic text-center py-4">Noch keine Ereignisse empfangen.</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Untere Historie (Desktop / iPad Querformat) -->
+        <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 hidden lg:flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-slate-800 pb-1">
+                <span>DISPATCH- & TERMINAL-STATUSPROTOKOLL</span>
+                <span id="log-counter">0 Ereignisse registriert</span>
             </div>
-            <div id="mobile-dispatch-log" class="flex-1 overflow-y-auto text-xs font-mono space-y-1.5 py-2">
-                <div class="text-slate-500 italic text-center py-4">Noch keine Ereignisse empfangen.</div>
+            <div id="dispatch-log" class="flex-1 overflow-y-auto text-[11px] font-mono space-y-1 py-1">
+                <div class="text-slate-500 italic">Warte auf Alarmierungen oder Statusrückmeldungen des Terminals...</div>
             </div>
-        </section>
+        </footer>
 
-    </main>
+    </div>
 
-    <!-- UNTERE HISTORIE (DESKTOP / IPAD QUERFORMAT) -->
-    <footer class="h-28 bg-dispatch-card/90 border-t border-slate-800 px-5 py-2 shrink-0 hidden lg:flex flex-col justify-between">
-        <div class="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-slate-800 pb-1">
-            <span>DISPATCH- & TERMINAL-STATUSPROTOKOLL</span>
-            <span id="log-counter">0 Ereignisse registriert</span>
+    <!-- ============================================================== -->
+    <!-- REITER 2: FUNK (SOUNDBOARD FÜR FUNKSPRÜCHE)                    -->
+    <!-- ============================================================== -->
+    <div id="container-tab-radio" class="flex-1 hidden flex-col overflow-hidden min-h-0 p-2 md:p-4">
+        
+        <div class="flex-1 bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-5 flex flex-col shadow-2xl overflow-hidden">
+            
+            <!-- Funk Status & Stop-Bar -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-3 w-3 relative">
+                        <span id="radio-pulse-ping" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                        <span id="radio-pulse-dot" class="relative inline-flex rounded-full h-3 w-3 bg-slate-600"></span>
+                    </span>
+                    <h2 class="font-tech text-sm md:text-base font-bold tracking-wider text-slate-200">
+                        FUNKSPRECH-STEUERUNG
+                    </h2>
+                    <span id="radio-current-playing" class="text-xs font-mono text-slate-400 ml-2 italic">Bereit zum Senden</span>
+                </div>
+
+                <button onclick="stopRadioSound()" class="px-3 py-1.5 bg-red-950/80 hover:bg-red-900 border border-red-700/60 active:scale-95 text-red-300 font-tech font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                    <span>⏹</span><span>FUNK STOPPEN</span>
+                </button>
+            </div>
+
+            <!-- Soundboard Matrix -->
+            <div class="flex-1 overflow-y-auto py-3 space-y-4 pr-1">
+                
+                <!-- GRUPPE 1: LEITSTELLE (LST) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded bg-sky-400"></span>
+                        <span class="font-tech font-bold text-xs tracking-wider text-sky-400">LEITSTELLE (LST)</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                        <button onclick="playRadioSound('ABZ_kommen.mp3', 'ABZ von LST', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">ABZ von LST</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">ABZ_kommen.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('Leitstelle_kommt.mp3', 'LST: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Kommen!”</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_kommt.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('Leitstelle_verstanden.mp3', 'LST: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Verstanden!”</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_verstanden.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('Leitstelle_Ende.mp3', 'LST: “Ende!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Ende!”</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_Ende.mp3</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GRUPPE 2: LAGE & RESSOURCEN -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded bg-amber-400"></span>
+                        <span class="font-tech font-bold text-xs tracking-wider text-amber-400">LAGE & RESSOURCEN</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <button onclick="playRadioSound('Lage.mp3', 'Lagemeldung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">Lagemeldung</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Lage.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('Ressourcen.mp3', 'Ressourcen', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">Ressourcen</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Ressourcen.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('Nachalarmierung.mp3', 'Nachalarmierung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">Nachalarmierung</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">Nachalarmierung.mp3</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GRUPPE 3: NOTARZT (NEF) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded bg-emerald-400"></span>
+                        <span class="font-tech font-bold text-xs tracking-wider text-emerald-400">NOTARZT (NEF)</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                        <button onclick="playRadioSound('ABZ_NEF_kommen.mp3', 'ABZ von NEF', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">ABZ von NEF</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">ABZ_NEF_kommen.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('NEF_kommen.mp3', 'NEF: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: “Kommen!”</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_kommen.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('NEF_verstanden.mp3', 'NEF: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: “Verstanden!”</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_verstanden.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('NEF_faehrt.mp3', 'NEF: Eintreffzeit', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: Eintreffzeit</span>
+                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_faehrt.mp3</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Schnell-Info Leiste unten im Funkreiter -->
+            <div class="pt-2 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between shrink-0">
+                <span>🔊 Die Audiowiedergabe erfolgt direkt über das Gerät des Dispatchers.</span>
+                <span class="text-slate-500 hidden sm:inline">Raum: <span id="radio-room-tag" class="text-yellow-400 font-bold">SIM1</span></span>
+            </div>
+
         </div>
-        <div id="dispatch-log" class="flex-1 overflow-y-auto text-[11px] font-mono space-y-1 py-1">
-            <div class="text-slate-500 italic">Warte auf Alarmierungen oder Statusrückmeldungen des Terminals...</div>
-        </div>
-    </footer>
+
+    </div>
 
     <script>
+        // --- 1. RAUM LOGIK AUS DER URL ---
         const urlParams = new URLSearchParams(window.location.search);
         let roomCode = (urlParams.get('room') || 'SIM1').toUpperCase();
         document.getElementById('input-room').value = roomCode;
         document.getElementById('btn-room-tag').innerText = roomCode;
+        document.getElementById('radio-room-tag').innerText = roomCode;
 
+        // --- 2. HAUPTREITER WECHSEL (ALARM vs. FUNK) ---
+        function switchMainTab(tab) {
+            const cAlarm = document.getElementById('container-tab-alarm');
+            const cRadio = document.getElementById('container-tab-radio');
+            const bAlarm = document.getElementById('main-nav-alarm');
+            const bRadio = document.getElementById('main-nav-radio');
+
+            if (tab === 'alarm') {
+                cAlarm.classList.remove('hidden');
+                cAlarm.classList.add('flex');
+                cRadio.classList.add('hidden');
+                cRadio.classList.remove('flex');
+
+                bAlarm.className = 'px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 bg-red-600 text-white shadow';
+                bRadio.className = 'px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+            } else {
+                cAlarm.classList.add('hidden');
+                cAlarm.classList.remove('flex');
+                cRadio.classList.remove('hidden');
+                cRadio.classList.add('flex');
+
+                bRadio.className = 'px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 bg-sky-600 text-white shadow';
+                bAlarm.className = 'px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+            }
+        }
+
+        // --- 3. FUNK AUDIO PLAYER ---
+        let currentRadioAudio = null;
+        let activeRadioBtn = null;
+
+        function stopRadioSound() {
+            if (currentRadioAudio) {
+                currentRadioAudio.pause();
+                currentRadioAudio.currentTime = 0;
+                currentRadioAudio = null;
+            }
+            if (activeRadioBtn) {
+                activeRadioBtn.classList.remove('btn-radio-playing');
+                activeRadioBtn = null;
+            }
+            document.getElementById('radio-pulse-ping').classList.add('hidden');
+            document.getElementById('radio-pulse-dot').className = 'relative inline-flex rounded-full h-3 w-3 bg-slate-600';
+            document.getElementById('radio-current-playing').innerText = 'Bereit zum Senden';
+        }
+
+        function playRadioSound(file, label, btnElement) {
+            stopRadioSound();
+
+            currentRadioAudio = new Audio(file);
+            activeRadioBtn = btnElement;
+
+            if (activeRadioBtn) {
+                activeRadioBtn.classList.add('btn-radio-playing');
+            }
+
+            document.getElementById('radio-pulse-ping').classList.remove('hidden');
+            document.getElementById('radio-pulse-dot').className = 'relative inline-flex rounded-full h-3 w-3 bg-sky-400';
+            document.getElementById('radio-current-playing').innerText = `Sendet: ${label} (${file})`;
+
+            currentRadioAudio.play().catch(e => {
+                console.warn('Audio play error:', e);
+                document.getElementById('radio-current-playing').innerText = `Fehler beim Laden von: ${file}`;
+            });
+
+            currentRadioAudio.onended = () => {
+                stopRadioSound();
+            };
+
+            // Im Einsatz-Logbuch vermerken
+            const now = new Date();
+            const logHtml = `
+                <div class="flex items-center justify-between bg-slate-900/60 border-l-2 border-sky-400 px-2.5 py-1.5 rounded text-slate-300">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-slate-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-400 border border-sky-700/60">FUNK</span>
+                        <span class="text-slate-100 font-bold">${label}</span>
+                        <span class="text-xs text-slate-400 font-mono">(${file})</span>
+                    </div>
+                    <div class="text-sky-400 text-[10px] shrink-0 ml-2">✓ Abgespielt</div>
+                </div>
+            `;
+            addLogEntry(logHtml);
+        }
+
+        // --- 4. SMARTPHONE UNTERREITER FÜR ALARM ---
         function switchMobileTab(tab) {
             const pScen = document.getElementById('pane-scenarios');
             const pEdit = document.getElementById('pane-editor');
@@ -363,6 +588,7 @@
             }
         }
 
+        // --- 5. NETZWERK & WEBSOCKET ---
         let ws = null;
         let bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('sim_data_' + roomCode) : null;
 
@@ -452,7 +678,7 @@
             document.getElementById('edit_sv').value = generateSV(geb);
         }
 
-        // 12 SZENARIEN (ALLE OHNE @ABZ)
+        // --- 6. SZENARIEN DATENBANK ---
         const scenarios = {
             'ACS': {
                 code: '10D05 (Herzinfarkt / Angina Pectoris)',
@@ -570,6 +796,7 @@
             }
         }
 
+        // --- 7. DISPATCH ALARM-TON ---
         let audioCtx = null;
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
