@@ -54,6 +54,11 @@
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
             touch-action: manipulation;
+            padding-top: max(env(safe-area-inset-top), 8px);
+            padding-bottom: max(env(safe-area-inset-bottom), 6px);
+            padding-left: max(env(safe-area-inset-left), 6px);
+            padding-right: max(env(safe-area-inset-right), 6px);
+            box-sizing: border-box;
         }
 
         .glow-red { box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.45); }
@@ -86,14 +91,14 @@
 </head>
 <body class="text-slate-100 h-[100dvh] flex flex-col overflow-hidden font-sans select-none">
 
-    <!-- OBERE STATUSLEISTE MIT HAUPTREITER-UMSCHALTUNG -->
-    <header class="h-14 bg-dispatch-card/95 backdrop-blur border-b border-slate-800 px-3 md:px-5 flex items-center justify-between shrink-0 shadow-lg z-20">
+    <!-- OBERE STATUSLEISTE -->
+    <header class="h-14 bg-dispatch-card/95 backdrop-blur border-b border-slate-800 px-3 md:px-5 flex items-center justify-between shrink-0 shadow-lg z-20 rounded-xl mb-1">
         <div class="flex items-center gap-3">
             <div class="relative flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-red-950/60 border border-red-500/40 shrink-0">
                 <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 pulse-dot"></span>
             </div>
             
-            <!-- Haupt-Reiter: Alarmierung vs. Funk -->
+            <!-- Haupt-Reiter Umschaltung -->
             <div class="flex bg-slate-900 border border-slate-700/80 p-0.5 rounded-lg shadow-inner">
                 <button id="main-nav-alarm" onclick="switchMainTab('alarm')" class="px-2.5 md:px-4 py-1 rounded-md font-tech font-bold text-xs md:text-sm tracking-wider transition flex items-center gap-1.5 bg-red-600 text-white shadow">
                     <span>🚨</span><span>ALARMIERUNG</span>
@@ -127,12 +132,12 @@
     </header>
 
     <!-- ============================================================== -->
-    <!-- REITER 1: ALARMIERUNG (BESTEHENDE ANSICHT)                      -->
+    <!-- REITER 1: ALARMIERUNG                                          -->
     <!-- ============================================================== -->
     <div id="container-tab-alarm" class="flex-1 flex flex-col overflow-hidden min-h-0">
         
-        <!-- Smartphone-Tabs für Alarm-Unterbereiche -->
-        <nav class="lg:hidden flex bg-slate-900/90 border-b border-slate-800 p-1.5 gap-1 shrink-0 z-10">
+        <!-- Smartphone-Tabs -->
+        <nav class="lg:hidden flex bg-slate-900/90 border-b border-slate-800 p-1.5 gap-1 shrink-0 z-10 mb-1 rounded-lg">
             <button id="tab-btn-scenarios" onclick="switchMobileTab('scenarios')" class="flex-1 py-2 rounded-lg font-tech text-xs font-bold tracking-wider transition flex items-center justify-center gap-1.5 bg-sky-950/80 text-sky-400 border border-sky-600/50">
                 <span>📋</span><span>VORLAGEN</span>
             </button>
@@ -145,7 +150,7 @@
         </nav>
 
         <!-- Hauptbereich Alarmierungen -->
-        <main class="flex-1 flex flex-col lg:flex-row gap-3 md:gap-4 p-2 md:p-4 overflow-hidden min-h-0">
+        <main class="flex-1 flex flex-col lg:flex-row gap-3 md:gap-4 overflow-hidden min-h-0">
 
             <!-- 1. Notfall-Vorlagen -->
             <section id="pane-scenarios" class="w-full lg:w-[48%] flex flex-col gap-2 overflow-hidden h-full">
@@ -353,9 +358,9 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- REITER 2: FUNK (SOUNDBOARD FÜR FUNKSPRÜCHE)                    -->
+    <!-- REITER 2: FUNK (OHNE DATEINAMEN AUF DEN TASTEN)               -->
     <!-- ============================================================== -->
-    <div id="container-tab-radio" class="flex-1 hidden flex-col overflow-hidden min-h-0 p-2 md:p-4">
+    <div id="container-tab-radio" class="flex-1 hidden flex-col overflow-hidden min-h-0">
         
         <div class="flex-1 bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-5 flex flex-col shadow-2xl overflow-hidden">
             
@@ -386,22 +391,24 @@
                         <span class="w-2 h-2 rounded bg-sky-400"></span>
                         <span class="font-tech font-bold text-xs tracking-wider text-sky-400">LEITSTELLE (LST)</span>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                        <button onclick="playRadioSound('ABZ_kommen.mp3', 'ABZ von LST', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        <button onclick="playRadioSound('ABZ_kommen.mp3', 'ABZ von LST', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">ABZ von LST</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">ABZ_kommen.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('Leitstelle_kommt.mp3', 'LST: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Leitstelle_kommt.mp3', 'LST: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Kommen!”</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_kommt.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('Leitstelle_verstanden.mp3', 'LST: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Leitstelle_verstanden.mp3', 'LST: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Verstanden!”</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_verstanden.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('Leitstelle_Ende.mp3', 'LST: “Ende!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Leitstelle_Ende.mp3', 'LST: “Ende!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: “Ende!”</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Leitstelle_Ende.mp3</span>
+                        </button>
+                        <button onclick="playRadioSound('verstaendigung.mp3', 'LST: Keine Verständigung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: Keine Verständigung</span>
+                        </button>
+                        <button onclick="playRadioSound('NEF_nachalarmiert.mp3', 'LST: NEF nachalarmiert', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition">
+                            <span class="font-tech text-sm md:text-base font-bold text-slate-100">LST: NEF nachalarmiert</span>
                         </button>
                     </div>
                 </div>
@@ -413,17 +420,14 @@
                         <span class="font-tech font-bold text-xs tracking-wider text-amber-400">LAGE & RESSOURCEN</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <button onclick="playRadioSound('Lage.mp3', 'Lagemeldung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Lage.mp3', 'Lagemeldung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">Lagemeldung</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Lage.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('Ressourcen.mp3', 'Ressourcen', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Ressourcen.mp3', 'Ressourcen', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">Ressourcen</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Ressourcen.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('Nachalarmierung.mp3', 'Nachalarmierung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('Nachalarmierung.mp3', 'Nachalarmierung', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-amber-500 hover:bg-amber-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">Nachalarmierung</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">Nachalarmierung.mp3</span>
                         </button>
                     </div>
                 </div>
@@ -435,30 +439,26 @@
                         <span class="font-tech font-bold text-xs tracking-wider text-emerald-400">NOTARZT (NEF)</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                        <button onclick="playRadioSound('ABZ_NEF_kommen.mp3', 'ABZ von NEF', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('ABZ_NEF_kommen.mp3', 'ABZ von NEF', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">ABZ von NEF</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">ABZ_NEF_kommen.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('NEF_kommen.mp3', 'NEF: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('NEF_kommen.mp3', 'NEF: “Kommen!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: “Kommen!”</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_kommen.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('NEF_verstanden.mp3', 'NEF: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('NEF_verstanden.mp3', 'NEF: “Verstanden!”', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: “Verstanden!”</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_verstanden.mp3</span>
                         </button>
-                        <button onclick="playRadioSound('NEF_faehrt.mp3', 'NEF: Eintreffzeit', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition flex flex-col justify-between">
+                        <button onclick="playRadioSound('NEF_faehrt.mp3', 'NEF: Eintreffzeit', this)" class="btn-radio text-left p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 hover:border-emerald-500 hover:bg-emerald-950/20 active:scale-[0.98] transition">
                             <span class="font-tech text-sm md:text-base font-bold text-slate-100">NEF: Eintreffzeit</span>
-                            <span class="font-mono text-[10px] text-slate-400 mt-1">NEF_faehrt.mp3</span>
                         </button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Schnell-Info Leiste unten im Funkreiter -->
+            <!-- Schnell-Info Leiste -->
             <div class="pt-2 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between shrink-0">
-                <span>🔊 Die Audiowiedergabe erfolgt direkt über das Gerät des Dispatchers.</span>
+                <span>🔊 Die Audiowiedergabe erfolgt direkt über das Steuergerät.</span>
                 <span class="text-slate-500 hidden sm:inline">Raum: <span id="radio-room-tag" class="text-yellow-400 font-bold">SIM1</span></span>
             </div>
 
@@ -531,7 +531,7 @@
 
             document.getElementById('radio-pulse-ping').classList.remove('hidden');
             document.getElementById('radio-pulse-dot').className = 'relative inline-flex rounded-full h-3 w-3 bg-sky-400';
-            document.getElementById('radio-current-playing').innerText = `Sendet: ${label} (${file})`;
+            document.getElementById('radio-current-playing').innerText = `Sendet: ${label}`;
 
             currentRadioAudio.play().catch(e => {
                 console.warn('Audio play error:', e);
@@ -542,7 +542,6 @@
                 stopRadioSound();
             };
 
-            // Im Einsatz-Logbuch vermerken
             const now = new Date();
             const logHtml = `
                 <div class="flex items-center justify-between bg-slate-900/60 border-l-2 border-sky-400 px-2.5 py-1.5 rounded text-slate-300">
@@ -550,9 +549,8 @@
                         <span class="text-slate-400 font-bold">[${now.toLocaleTimeString('de-DE')}]</span>
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-400 border border-sky-700/60">FUNK</span>
                         <span class="text-slate-100 font-bold">${label}</span>
-                        <span class="text-xs text-slate-400 font-mono">(${file})</span>
                     </div>
-                    <div class="text-sky-400 text-[10px] shrink-0 ml-2">✓ Abgespielt</div>
+                    <div class="text-sky-400 text-[10px] shrink-0 ml-2">✓ Gesendet</div>
                 </div>
             `;
             addLogEntry(logHtml);
