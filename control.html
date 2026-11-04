@@ -157,7 +157,7 @@
                 <div class="flex items-center justify-between shrink-0 px-1">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-tech font-bold text-slate-400 tracking-wider">AMPDS EINSATZSZENARIEN</span>
-                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">12 VORLAGEN</span>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">15 VORLAGEN</span>
                     </div>
                     <span class="text-[11px] text-slate-400 hidden sm:inline">Klick lädt & öffnet Editor</span>
                 </div>
@@ -258,9 +258,32 @@
                         </div>
                         <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Psychiatrische Krise</div>
                     </button>
+                    
+                    <button onclick="selectScenario('EPISTAXIS_HYPERTONIE')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">21B01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Nasenbluten / Hypertonie</div>
+                    </button>
+
+                    <button onclick="selectScenario('SYNKOPE_STADTHALLE')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-sky-900/40 hover:border-sky-500 hover:bg-sky-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded">31B01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">BRAVO</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-sky-300">Synkope / Kollaps</div>
+                    </button>
+
+                    <button onclick="selectScenario('HYPO_ALKOHOL_GEHSTEIG')" class="group text-left px-3.5 py-3 rounded-xl bg-dispatch-panel/70 border border-orange-900/40 hover:border-orange-500 hover:bg-orange-950/20 active:scale-[0.98] transition flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-xs font-bold text-orange-400 bg-orange-950/70 border border-orange-800/60 px-2 py-0.5 rounded">13C01</span>
+                            <span class="text-[10px] font-mono text-slate-400 tracking-wider font-semibold">CHARLIE</span>
+                        </div>
+                        <div class="font-tech text-sm md:text-base font-bold text-slate-100 group-hover:text-orange-300">Hypoglykämie bei C2</div>
+                    </button>
                 </div>
             </section>
-
             <!-- 2. Auftrags-Editor -->
             <section id="pane-editor" class="w-full lg:w-[52%] hidden lg:flex flex-col bg-dispatch-panel border border-slate-800 rounded-2xl p-3 md:p-4 shadow-xl overflow-hidden h-full">
                 <div class="flex items-center justify-between pb-2 md:pb-3 border-b border-slate-800 shrink-0">
